@@ -1,0 +1,6 @@
+/Users/asaba/.brew/share/gl3w/gl3w.c
+/Users/asaba/.brew/include/gl3w/GL/gl3w.h
+/Users/asaba/.brew/include/gl3w/GL/glcorearb.h
+/Users/asaba/.brew/include/gl3w/KHR/khrplatform.h
+/Users/asaba/.brew/share/gl3w/gl3w-config.cmake
+/Users/asaba/.brew/share/gl3w/gl3w-targets.cmake

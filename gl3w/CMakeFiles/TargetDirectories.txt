@@ -1,0 +1,7 @@
+/Users/asaba/scop/gl3w/CMakeFiles/install/local.dir
+/Users/asaba/scop/gl3w/CMakeFiles/install/strip.dir
+/Users/asaba/scop/gl3w/CMakeFiles/install.dir
+/Users/asaba/scop/gl3w/CMakeFiles/rebuild_cache.dir
+/Users/asaba/scop/gl3w/CMakeFiles/edit_cache.dir
+/Users/asaba/scop/gl3w/CMakeFiles/list_install_components.dir
+/Users/asaba/scop/gl3w/CMakeFiles/gl3w_gen.dir

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "gl3w.c": "cpp",
+        "__nullptr": "cpp"
+    }
+}

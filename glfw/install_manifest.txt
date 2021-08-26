@@ -1,0 +1,8 @@
+/Users/asaba/.brew/include/GLFW/glfw3.h
+/Users/asaba/.brew/include/GLFW/glfw3native.h
+/Users/asaba/.brew/lib/cmake/glfw3/glfw3Config.cmake
+/Users/asaba/.brew/lib/cmake/glfw3/glfw3ConfigVersion.cmake
+/Users/asaba/.brew/lib/cmake/glfw3/glfw3Targets.cmake
+/Users/asaba/.brew/lib/cmake/glfw3/glfw3Targets-noconfig.cmake
+/Users/asaba/.brew/lib/pkgconfig/glfw3.pc
+/Users/asaba/.brew/lib/libglfw3.a
