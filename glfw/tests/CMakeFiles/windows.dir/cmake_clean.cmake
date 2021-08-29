@@ -1,8 +1,13 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/windows.dir/__/deps/getopt.c.o"
-  "CMakeFiles/windows.dir/__/deps/glad_gl.c.o"
-  "CMakeFiles/windows.dir/windows.c.o"
-  "windows.app/Contents/MacOS/windows"
+  "CMakeFiles/windows.dir/__/deps/getopt.c.obj"
+  "CMakeFiles/windows.dir/__/deps/getopt.c.obj.d"
+  "CMakeFiles/windows.dir/__/deps/glad_gl.c.obj"
+  "CMakeFiles/windows.dir/__/deps/glad_gl.c.obj.d"
+  "CMakeFiles/windows.dir/windows.c.obj"
+  "CMakeFiles/windows.dir/windows.c.obj.d"
+  "libwindows.dll.a"
+  "windows.exe"
+  "windows.exe.manifest"
   "windows.pdb"
 )
 

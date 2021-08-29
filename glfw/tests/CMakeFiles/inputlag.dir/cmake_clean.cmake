@@ -1,9 +1,14 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/inputlag.dir/__/deps/getopt.c.o"
-  "CMakeFiles/inputlag.dir/__/deps/glad_gl.c.o"
-  "CMakeFiles/inputlag.dir/inputlag.c.o"
-  "inputlag.app/Contents/MacOS/inputlag"
+  "CMakeFiles/inputlag.dir/__/deps/getopt.c.obj"
+  "CMakeFiles/inputlag.dir/__/deps/getopt.c.obj.d"
+  "CMakeFiles/inputlag.dir/__/deps/glad_gl.c.obj"
+  "CMakeFiles/inputlag.dir/__/deps/glad_gl.c.obj.d"
+  "CMakeFiles/inputlag.dir/inputlag.c.obj"
+  "CMakeFiles/inputlag.dir/inputlag.c.obj.d"
+  "inputlag.exe"
+  "inputlag.exe.manifest"
   "inputlag.pdb"
+  "libinputlag.dll.a"
 )
 
 # Per-language clean rules from dependency scanning.

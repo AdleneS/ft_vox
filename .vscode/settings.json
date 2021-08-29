@@ -1,6 +1,11 @@
 {
-    "files.associations": {
-        "gl3w.c": "cpp",
-        "__nullptr": "cpp"
-    }
+  "files.associations": {
+    "gl3w.c": "cpp",
+    "__nullptr": "cpp",
+    "filesystem": "cpp",
+    "fstream": "cpp",
+    "vector": "cpp",
+    "iostream": "cpp"
+  },
+  "C_Cpp.errorSquiggles": "Disabled"
 }

@@ -1,0 +1,81 @@
+Determining if the include file pthread.h exists failed with the following output:
+Change Dir: C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/MinGW/bin/mingw32-make.exe -f Makefile cmTC_875a5/fast && C:/MinGW/bin/mingw32-make.exe  -f CMakeFiles\cmTC_875a5.dir\build.make CMakeFiles/cmTC_875a5.dir/build
+mingw32-make.exe[1]: Entering directory 'C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_875a5.dir/CheckIncludeFile.c.obj
+C:\MinGW\bin\gcc.exe    -o CMakeFiles\cmTC_875a5.dir\CheckIncludeFile.c.obj -c C:\Users\wks\Desktop\ft_vox\glfw\CMakeFiles\CMakeTmp\CheckIncludeFile.c
+C:\Users\wks\Desktop\ft_vox\glfw\CMakeFiles\CMakeTmp\CheckIncludeFile.c:1:10: fatal error: pthread.h: No such file or directory
+    1 | #include <pthread.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+CMakeFiles\cmTC_875a5.dir\build.make:76: recipe for target 'CMakeFiles/cmTC_875a5.dir/CheckIncludeFile.c.obj' failed
+mingw32-make.exe[1]: *** [CMakeFiles/cmTC_875a5.dir/CheckIncludeFile.c.obj] Error 1
+mingw32-make.exe[1]: Leaving directory 'C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_875a5/fast' failed
+mingw32-make.exe: *** [cmTC_875a5/fast] Error 2
+
+
+
+Determining if the include file dinput.h exists failed with the following output:
+Change Dir: C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/MinGW/bin/mingw32-make.exe -f Makefile cmTC_ee92c/fast && C:/MinGW/bin/mingw32-make.exe  -f CMakeFiles\cmTC_ee92c.dir\build.make CMakeFiles/cmTC_ee92c.dir/build
+mingw32-make.exe[1]: Entering directory 'C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_ee92c.dir/CheckIncludeFile.c.obj
+C:\MinGW\bin\gcc.exe    -o CMakeFiles\cmTC_ee92c.dir\CheckIncludeFile.c.obj -c C:\Users\wks\Desktop\ft_vox\glfw\CMakeFiles\CMakeTmp\CheckIncludeFile.c
+C:\Users\wks\Desktop\ft_vox\glfw\CMakeFiles\CMakeTmp\CheckIncludeFile.c:1:10: fatal error: dinput.h: No such file or directory
+    1 | #include <dinput.h>
+      |          ^~~~~~~~~~
+compilation terminated.
+CMakeFiles\cmTC_ee92c.dir\build.make:76: recipe for target 'CMakeFiles/cmTC_ee92c.dir/CheckIncludeFile.c.obj' failed
+mingw32-make.exe[1]: *** [CMakeFiles/cmTC_ee92c.dir/CheckIncludeFile.c.obj] Error 1
+mingw32-make.exe[1]: Leaving directory 'C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_ee92c/fast' failed
+mingw32-make.exe: *** [cmTC_ee92c/fast] Error 2
+
+
+
+Determining if the include file xinput.h exists failed with the following output:
+Change Dir: C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/MinGW/bin/mingw32-make.exe -f Makefile cmTC_a7d07/fast && C:/MinGW/bin/mingw32-make.exe  -f CMakeFiles\cmTC_a7d07.dir\build.make CMakeFiles/cmTC_a7d07.dir/build
+mingw32-make.exe[1]: Entering directory 'C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a7d07.dir/CheckIncludeFile.c.obj
+C:\MinGW\bin\gcc.exe    -o CMakeFiles\cmTC_a7d07.dir\CheckIncludeFile.c.obj -c C:\Users\wks\Desktop\ft_vox\glfw\CMakeFiles\CMakeTmp\CheckIncludeFile.c
+C:\Users\wks\Desktop\ft_vox\glfw\CMakeFiles\CMakeTmp\CheckIncludeFile.c:1:10: fatal error: xinput.h: No such file or directory
+    1 | #include <xinput.h>
+      |          ^~~~~~~~~~
+compilation terminated.
+CMakeFiles\cmTC_a7d07.dir\build.make:76: recipe for target 'CMakeFiles/cmTC_a7d07.dir/CheckIncludeFile.c.obj' failed
+mingw32-make.exe[1]: *** [CMakeFiles/cmTC_a7d07.dir/CheckIncludeFile.c.obj] Error 1
+mingw32-make.exe[1]: Leaving directory 'C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_a7d07/fast' failed
+mingw32-make.exe: *** [cmTC_a7d07/fast] Error 2
+
+
+
+Performing C SOURCE FILE Test _GLFW_HAS_64ASLR failed with the following output:
+Change Dir: C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/MinGW/bin/mingw32-make.exe -f Makefile cmTC_109f2/fast && C:/MinGW/bin/mingw32-make.exe  -f CMakeFiles\cmTC_109f2.dir\build.make CMakeFiles/cmTC_109f2.dir/build
+mingw32-make.exe[1]: Entering directory 'C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_109f2.dir/src.c.obj
+C:\MinGW\bin\gcc.exe -D_GLFW_HAS_64ASLR  -Wl,--high-entropy-va -o CMakeFiles\cmTC_109f2.dir\src.c.obj -c C:\Users\wks\Desktop\ft_vox\glfw\CMakeFiles\CMakeTmp\src.c
+Linking C executable cmTC_109f2.exe
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_link_script CMakeFiles\cmTC_109f2.dir\link.txt --verbose=1
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\cmTC_109f2.dir/objects.a
+C:\MinGW\bin\ar.exe qc CMakeFiles\cmTC_109f2.dir/objects.a @CMakeFiles\cmTC_109f2.dir\objects1.rsp
+C:\MinGW\bin\gcc.exe  -Wl,--high-entropy-va -Wl,--whole-archive CMakeFiles\cmTC_109f2.dir/objects.a -Wl,--no-whole-archive -o cmTC_109f2.exe -Wl,--out-implib,libcmTC_109f2.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\cmTC_109f2.dir\linklibs.rsp
+c:/mingw/bin/../lib/gcc/mingw32/9.2.0/../../../../mingw32/bin/ld.exe: unrecognized option '--high-entropy-va'
+c:/mingw/bin/../lib/gcc/mingw32/9.2.0/../../../../mingw32/bin/ld.exe: use the --help option for usage information
+collect2.exe: error: ld returned 1 exit status
+CMakeFiles\cmTC_109f2.dir\build.make:99: recipe for target 'cmTC_109f2.exe' failed
+mingw32-make.exe[1]: *** [cmTC_109f2.exe] Error 1
+mingw32-make.exe[1]: Leaving directory 'C:/Users/wks/Desktop/ft_vox/glfw/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_109f2/fast' failed
+mingw32-make.exe: *** [cmTC_109f2/fast] Error 2
+
+
+Source file was:
+int main(void) { return 0; }

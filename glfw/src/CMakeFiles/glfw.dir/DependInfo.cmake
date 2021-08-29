@@ -1,36 +1,28 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
-  "C"
-  )
-# The set of files for implicit dependencies of each language:
-set(CMAKE_DEPENDS_CHECK_C
-  "/Users/asaba/scop/glfw-3.3.2/src/cocoa_init.m" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/cocoa_init.m.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/cocoa_joystick.m" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/cocoa_joystick.m.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/cocoa_monitor.m" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/cocoa_monitor.m.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/cocoa_time.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/cocoa_time.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/cocoa_window.m" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/cocoa_window.m.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/context.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/context.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/egl_context.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/egl_context.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/init.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/init.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/input.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/input.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/monitor.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/monitor.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/nsgl_context.m" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/nsgl_context.m.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/osmesa_context.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/osmesa_context.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/posix_thread.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/posix_thread.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/vulkan.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/vulkan.c.o"
-  "/Users/asaba/scop/glfw-3.3.2/src/window.c" "/Users/asaba/scop/glfw-3.3.2/src/CMakeFiles/glfw.dir/window.c.o"
-  )
-set(CMAKE_C_COMPILER_ID "AppleClang")
-
-# Preprocessor definitions for this target.
-set(CMAKE_TARGET_DEFINITIONS_C
-  "_GLFW_USE_CONFIG_H"
   )
 
-# The include file search paths:
-set(CMAKE_C_TARGET_INCLUDE_PATH
-  "include"
-  "src"
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/context.c" "src/CMakeFiles/glfw.dir/context.c.obj" "gcc" "src/CMakeFiles/glfw.dir/context.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/egl_context.c" "src/CMakeFiles/glfw.dir/egl_context.c.obj" "gcc" "src/CMakeFiles/glfw.dir/egl_context.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/init.c" "src/CMakeFiles/glfw.dir/init.c.obj" "gcc" "src/CMakeFiles/glfw.dir/init.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/input.c" "src/CMakeFiles/glfw.dir/input.c.obj" "gcc" "src/CMakeFiles/glfw.dir/input.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/monitor.c" "src/CMakeFiles/glfw.dir/monitor.c.obj" "gcc" "src/CMakeFiles/glfw.dir/monitor.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/osmesa_context.c" "src/CMakeFiles/glfw.dir/osmesa_context.c.obj" "gcc" "src/CMakeFiles/glfw.dir/osmesa_context.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/vulkan.c" "src/CMakeFiles/glfw.dir/vulkan.c.obj" "gcc" "src/CMakeFiles/glfw.dir/vulkan.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/wgl_context.c" "src/CMakeFiles/glfw.dir/wgl_context.c.obj" "gcc" "src/CMakeFiles/glfw.dir/wgl_context.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/win32_init.c" "src/CMakeFiles/glfw.dir/win32_init.c.obj" "gcc" "src/CMakeFiles/glfw.dir/win32_init.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/win32_joystick.c" "src/CMakeFiles/glfw.dir/win32_joystick.c.obj" "gcc" "src/CMakeFiles/glfw.dir/win32_joystick.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/win32_monitor.c" "src/CMakeFiles/glfw.dir/win32_monitor.c.obj" "gcc" "src/CMakeFiles/glfw.dir/win32_monitor.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/win32_thread.c" "src/CMakeFiles/glfw.dir/win32_thread.c.obj" "gcc" "src/CMakeFiles/glfw.dir/win32_thread.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/win32_time.c" "src/CMakeFiles/glfw.dir/win32_time.c.obj" "gcc" "src/CMakeFiles/glfw.dir/win32_time.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/win32_window.c" "src/CMakeFiles/glfw.dir/win32_window.c.obj" "gcc" "src/CMakeFiles/glfw.dir/win32_window.c.obj.d"
+  "C:/Users/wks/Desktop/ft_vox/glfw/src/window.c" "src/CMakeFiles/glfw.dir/window.c.obj" "gcc" "src/CMakeFiles/glfw.dir/window.c.obj.d"
   )
 
 # Targets to which this target links.

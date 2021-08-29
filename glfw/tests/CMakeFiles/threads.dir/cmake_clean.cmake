@@ -1,8 +1,13 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/threads.dir/__/deps/glad_gl.c.o"
-  "CMakeFiles/threads.dir/__/deps/tinycthread.c.o"
-  "CMakeFiles/threads.dir/threads.c.o"
-  "threads.app/Contents/MacOS/threads"
+  "CMakeFiles/threads.dir/__/deps/glad_gl.c.obj"
+  "CMakeFiles/threads.dir/__/deps/glad_gl.c.obj.d"
+  "CMakeFiles/threads.dir/__/deps/tinycthread.c.obj"
+  "CMakeFiles/threads.dir/__/deps/tinycthread.c.obj.d"
+  "CMakeFiles/threads.dir/threads.c.obj"
+  "CMakeFiles/threads.dir/threads.c.obj.d"
+  "libthreads.dll.a"
+  "threads.exe"
+  "threads.exe.manifest"
   "threads.pdb"
 )
 

@@ -1,9 +1,14 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/empty.dir/__/deps/glad_gl.c.o"
-  "CMakeFiles/empty.dir/__/deps/tinycthread.c.o"
-  "CMakeFiles/empty.dir/empty.c.o"
-  "empty.app/Contents/MacOS/empty"
+  "CMakeFiles/empty.dir/__/deps/glad_gl.c.obj"
+  "CMakeFiles/empty.dir/__/deps/glad_gl.c.obj.d"
+  "CMakeFiles/empty.dir/__/deps/tinycthread.c.obj"
+  "CMakeFiles/empty.dir/__/deps/tinycthread.c.obj.d"
+  "CMakeFiles/empty.dir/empty.c.obj"
+  "CMakeFiles/empty.dir/empty.c.obj.d"
+  "empty.exe"
+  "empty.exe.manifest"
   "empty.pdb"
+  "libempty.dll.a"
 )
 
 # Per-language clean rules from dependency scanning.

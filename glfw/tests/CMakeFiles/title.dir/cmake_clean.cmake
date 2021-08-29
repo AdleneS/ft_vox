@@ -1,7 +1,11 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/title.dir/__/deps/glad_gl.c.o"
-  "CMakeFiles/title.dir/title.c.o"
-  "title.app/Contents/MacOS/title"
+  "CMakeFiles/title.dir/__/deps/glad_gl.c.obj"
+  "CMakeFiles/title.dir/__/deps/glad_gl.c.obj.d"
+  "CMakeFiles/title.dir/title.c.obj"
+  "CMakeFiles/title.dir/title.c.obj.d"
+  "libtitle.dll.a"
+  "title.exe"
+  "title.exe.manifest"
   "title.pdb"
 )
 

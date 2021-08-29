@@ -1,8 +1,8 @@
-/Users/asaba/.brew/include/GLFW/glfw3.h
-/Users/asaba/.brew/include/GLFW/glfw3native.h
-/Users/asaba/.brew/lib/cmake/glfw3/glfw3Config.cmake
-/Users/asaba/.brew/lib/cmake/glfw3/glfw3ConfigVersion.cmake
-/Users/asaba/.brew/lib/cmake/glfw3/glfw3Targets.cmake
-/Users/asaba/.brew/lib/cmake/glfw3/glfw3Targets-noconfig.cmake
-/Users/asaba/.brew/lib/pkgconfig/glfw3.pc
-/Users/asaba/.brew/lib/libglfw3.a
+C:mingw64x86_64-w64-mingw32/include/GLFW/glfw3.h
+C:mingw64x86_64-w64-mingw32/include/GLFW/glfw3native.h
+C:mingw64x86_64-w64-mingw32/lib/cmake/glfw3/glfw3Config.cmake
+C:mingw64x86_64-w64-mingw32/lib/cmake/glfw3/glfw3ConfigVersion.cmake
+C:mingw64x86_64-w64-mingw32/lib/cmake/glfw3/glfw3Targets.cmake
+C:mingw64x86_64-w64-mingw32/lib/cmake/glfw3/glfw3Targets-noconfig.cmake
+C:mingw64x86_64-w64-mingw32/lib/pkgconfig/glfw3.pc
+C:mingw64x86_64-w64-mingw32/lib/libglfw3.a

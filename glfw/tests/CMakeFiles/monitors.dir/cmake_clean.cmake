@@ -1,8 +1,13 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/monitors.dir/__/deps/getopt.c.o"
-  "CMakeFiles/monitors.dir/__/deps/glad_gl.c.o"
-  "CMakeFiles/monitors.dir/monitors.c.o"
-  "monitors"
+  "CMakeFiles/monitors.dir/__/deps/getopt.c.obj"
+  "CMakeFiles/monitors.dir/__/deps/getopt.c.obj.d"
+  "CMakeFiles/monitors.dir/__/deps/glad_gl.c.obj"
+  "CMakeFiles/monitors.dir/__/deps/glad_gl.c.obj.d"
+  "CMakeFiles/monitors.dir/monitors.c.obj"
+  "CMakeFiles/monitors.dir/monitors.c.obj.d"
+  "libmonitors.dll.a"
+  "monitors.exe"
+  "monitors.exe.manifest"
   "monitors.pdb"
 )
 
