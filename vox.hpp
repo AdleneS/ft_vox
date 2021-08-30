@@ -27,8 +27,9 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 GLuint load_texture(const char *imagePath);
-void displayCube(Cube cube, Shader shader, int skip = -1);
-void createChunk(Shader shader);
+void displayCube(int x, int y, int z, Shader shader, Cube ***cube);
+Cube ***createChunk();
+void displayChunk(Cube ***chunk, Shader shader);
 
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;

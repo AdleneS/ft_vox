@@ -1,8 +1,9 @@
 
 #include <filesystem>
 #include "vox.hpp"
+#include <stdlib.h>
 
-void createCube(Cube cube, Shader shader);
+void createCube(Cube ***cube, Shader shader, glm::vec3 offset);
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
@@ -44,6 +45,10 @@ int main(void)
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "ft_vox", NULL, NULL);
+
+	Cube ***chunk;
+
+	chunk = createChunk();
 	if (!window)
 	{
 		glfwTerminate();
@@ -102,67 +107,127 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		displayChunk(chunk, shader);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 		shader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 
 		glBindVertexArray(VAO);
-		createChunk(shader);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &UVB);
+	for (int i = 0; i < 16; i++)
+	{
+		for (int j = 0; j < 32; j++)
+		{
+			free(chunk[i][j]);
+		}
+		free(chunk[i]);
+	}
+	free(chunk);
 	glfwDestroyWindow(window);
 
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
 }
 
-void createCube(Cube cube, Shader shader)
+void createCube(Cube ***cube, Shader shader, glm::vec3 offset)
 {
-	//cube.mat = glm::mat4(1.0f);
-	//cube.translate(pos);
-
-	shader.setMat4("model", cube.mat);
 	Mesh mesh;
-	//shader.setMat4("model", cube.mat);
-
-	mesh.checkIfExist(cube);
-
-	displayCube(cube, shader);
-	mesh.clearMesh();
-}
-
-void displayCube(Cube cube, Shader shader, int skip)
-{
-	for (int i = 0; i < 6; i++)
+	for (size_t x = 0; x < 16; x++)
 	{
-		if (i == skip)
-			continue;
-		shader.setVec2("spriteID", glm::vec2(0, 0));
-		if (i == 5)
-			shader.setVec2("spriteID", glm::vec2(1, 0));
-		if (i == 4)
-			shader.setVec2("spriteID", glm::vec2(2, 0));
-		glBindTexture(GL_TEXTURE_2D, 1);
-		glDrawArrays(GL_TRIANGLES, 6 * i, 6);
+		for (size_t y = 0; y < 32; y++)
+		{
+			for (size_t z = 0; z < 16; z++)
+			{
+				if (!mesh.getCube(x, y, z, cube))
+					continue;
+				shader.setMat4("model", glm::translate(cube[x][y][z].mat, offset));
+				displayCube(x, y, z, shader, cube);
+			}
+		}
 	}
 }
 
-void createChunk(Shader shader)
+void displayCube(int x, int y, int z, Shader shader, Cube ***cube)
 {
-	for (size_t k = 0; k < 1; k++)
+	Mesh mesh;
+	for (int i = 0; i < 6; i++)
 	{
-		for (size_t i = 0; i < 2; i++)
+		if (!mesh.getNeighbor(x, y, z, (Direction)i, cube))
 		{
-			for (size_t j = 0; j < 2; j++)
+			shader.setVec2("spriteID", cube[x][y][z].texCoord);
+			if (i == 4)
+				shader.setVec2("spriteID", glm::vec2(1, 0));
+			if (i == 5)
+				shader.setVec2("spriteID", glm::vec2(2, 0));
+			glBindTexture(GL_TEXTURE_2D, 1);
+			glDrawArrays(GL_TRIANGLES, 6 * i, 6);
+		}
+	}
+}
+
+Cube ***createChunk()
+{
+	//std::vector<Cube> cube;
+	int id = 0;
+
+	// Cube* cube = (int*)malloc(M * N * O * sizeof(int));
+	Cube ***cube = (Cube ***)malloc(16 * sizeof(Cube **));
+
+	for (int i = 0; i < 16; i++)
+	{
+		cube[i] = (Cube **)malloc(32 * sizeof(Cube *));
+
+		if (cube[i] == NULL)
+		{
+			fprintf(stderr, "Out of memory");
+			exit(0);
+		}
+
+		for (int j = 0; j < 32; j++)
+		{
+			cube[i][j] = (Cube *)malloc(16 * sizeof(Cube));
+			if (cube[i][j] == NULL)
 			{
-				Cube cube(glm::vec3(2 * i, 2 * k, 2 * j));
-				createCube(cube, shader);
+				fprintf(stderr, "Out of memory");
+				exit(0);
+			}
+		}
+	}
+
+	for (size_t x = 0; x < 16; x++)
+	{
+		for (size_t y = 0; y < 32; y++)
+		{
+			for (size_t z = 0; z < 16; z++)
+			{
+				int isEmpty = false;
+				if (rand() % 64 < 60)
+					isEmpty = true;
+				Cube c(glm::vec3(2 * x, 2 * y, 2 * z), isEmpty, id);
+				cube[x][y][z] = c;
+				id++;
+			}
+		}
+	}
+	return cube;
+}
+
+void displayChunk(Cube ***chunk, Shader shader)
+{
+	for (size_t x = 0; x < 4; x++)
+	{
+		for (size_t y = 0; y < 1; y++)
+		{
+			for (size_t z = 0; z < 4; z++)
+			{
+				createCube(chunk, shader, glm::vec3(x * 32, y * 64, z * 32));
 			}
 		}
 	}
@@ -245,3 +310,5 @@ GLuint load_texture(const char *imagePath)
 	stbi_image_free(data);
 	return texture1;
 }
+
+//std::array<int,

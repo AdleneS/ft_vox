@@ -5,85 +5,61 @@
 #include <vector>
 #include <iostream>
 
-float NORTH[] = {
-    //NORTH
-    -1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-    -1.0f, 1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f};
-float SOUTH[] = {
-    -1.0f, -1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f};
-float WEST[] = {
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f};
-float EAST[] = {
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f};
-float BOT[] = {
-    -1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, -1.0f};
-float TOP[] = {
-    -1.0f, 1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f};
+enum class Direction
+{
+    North,
+    East,
+    South,
+    West,
+    Top,
+    Bot
+};
+
+struct CubeCoordinate
+{
+    int x;
+    int y;
+    int z;
+};
+
+CubeCoordinate offsets[] =
+    {
+        0, 0, 1,
+        1, 0, 0,
+        0, 0, -1,
+        -1, 0, 0,
+        0, 1, 0,
+        0, -1, 0};
 
 class Mesh
 {
 private:
 public:
-    glm::mat4 mat;
-    std::vector<float> tri;
-    Mesh();
-    ~Mesh();
-    void append(float vertices)
+    glm::vec3 Position;
+    Mesh(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f))
     {
-        tri.push_back(vertices);
+        Position = position;
+        //translate(Position);
     }
-    void clearMesh()
+    int getCube(int x, int y, int z, Cube ***cube)
     {
-        tri.clear();
+        if (cube[x][y][z].Id >= 0 && !cube[x][y][z].isEmpty)
+            return 1;
+        else
+            return 0;
     }
-    void checkIfExist(Cube cube)
+    int getNeighbor(int x, int y, int z, Direction dir, Cube ***cube)
     {
-        std::cout << cube.Position.x << " " << cube.Position.y << " " << cube.Position.z << "\n";
-        for (size_t i = 0; i < 18; i += 3)
-        {
+        CubeCoordinate offsetToCheck = offsets[(int)dir];
+        CubeCoordinate neighborCoord = {x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z};
 
-            // NORTH[i] + cube.Position.x;
-            // NORTH[i + 1] + cube.Position.y;
-            // NORTH[i + 2] + cube.Position.z;
+        if (neighborCoord.x < 0 || neighborCoord.x >= 16 || neighborCoord.y < 0 || neighborCoord.y >= 32 || neighborCoord.z < 0 || neighborCoord.z >= 16)
+            return 0;
+        else
+        {
+            return getCube(neighborCoord.x, neighborCoord.y, neighborCoord.z, cube);
         }
     }
 };
-
-Mesh::Mesh()
-{
-}
-
-Mesh::~Mesh()
-{
-}
 
 #endif
