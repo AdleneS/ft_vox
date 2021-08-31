@@ -1,6 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include "vox.hpp"
 #include "glm/glm.hpp"
 #include <vector>
 #include <iostream>
@@ -36,6 +37,7 @@ class Mesh
 private:
 public:
     glm::vec3 Position;
+    std::vector<float> a;
     Mesh(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f))
     {
         Position = position;
@@ -53,7 +55,7 @@ public:
         CubeCoordinate offsetToCheck = offsets[(int)dir];
         CubeCoordinate neighborCoord = {x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z};
 
-        if (neighborCoord.x < 0 || neighborCoord.x >= 16 || neighborCoord.y < 0 || neighborCoord.y >= 32 || neighborCoord.z < 0 || neighborCoord.z >= 16)
+        if (neighborCoord.x < 0 || neighborCoord.x >= CHUNK_SIZE_X || neighborCoord.y < 0 || neighborCoord.y >= CHUNK_SIZE_Y || neighborCoord.z < 0 || neighborCoord.z >= CHUNK_SIZE_Z)
             return 0;
         else
         {

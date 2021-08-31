@@ -5,8 +5,38 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
+#include "cube.hpp"
 
-// Default camera values
+static glm::vec3 vert[] = {
+	glm::vec3(1, 1, 1),
+	glm::vec3(-1, 1, 1),
+	glm::vec3(-1, -1, 1),
+	glm::vec3(1, -1, 1),
+	glm::vec3(-1, 1, -1),
+	glm::vec3(1, 1, -1),
+	glm::vec3(1, -1, -1),
+	glm::vec3(-1, -1, -1)};
+
+static int faceTriangles[][4] = {
+	{0, 1, 2, 3},
+	{5, 0, 3, 6},
+	{4, 5, 6, 7},
+	{1, 4, 7, 2},
+	{5, 4, 1, 0},
+	{3, 2, 7, 6},
+};
+
+std::vector<glm::vec3> faceVertices(std::vector<glm::vec3> v, int dir)
+{
+	std::vector<glm::vec3> fv;
+	fv = v;
+	for (size_t i = 0; i < 4; i++)
+	{
+		fv.push_back(vert[faceTriangles[dir][i]]);
+	}
+	return fv;
+}
+
 static float VERTICES[] = {
 	//NORTH
 	-1.0f, -1.0f, 1.0f,
@@ -115,6 +145,7 @@ public:
 		texCoord = texcoord;
 		translate(Position);
 	}
+
 	//Cube(float posX, float posY, float posZ)
 	//{
 	//	Position = glm::vec3(posX, posY, posZ);

@@ -2,6 +2,8 @@
 #include <filesystem>
 #include "vox.hpp"
 #include <stdlib.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.hpp"
 
 void createCube(Cube ***cube, Shader shader, glm::vec3 offset);
 
@@ -46,9 +48,20 @@ int main(void)
 
 	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "ft_vox", NULL, NULL);
 
-	Cube ***chunk;
+	Chunk *chunk;
 
-	chunk = createChunk();
+	chunk = (Chunk *)malloc(sizeof(Chunk) * CHUNK_NB * CHUNK_NB);
+
+	int o = 0;
+	for (size_t x = 0; x < CHUNK_NB; x++)
+	{
+		for (size_t z = 0; z < CHUNK_NB; z++)
+		{
+			chunk[o] = createChunk(o, glm::vec3(x * CHUNK_SIZE_X * 2, 0, z * CHUNK_SIZE_Z * 2), rand());
+			o++;
+		}
+	}
+
 	if (!window)
 	{
 		glfwTerminate();
@@ -61,9 +74,19 @@ int main(void)
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glEnable(GL_DEPTH_TEST);
 
-	unsigned int VBO, VAO, UVB;
+	//std::vector<glm::vec3> ccc;
+	//ccc = (faceVertices(ccc, 0));
+	//ccc = (faceVertices(ccc, 1));
+	//printf("%f %f %f \n", ccc[4].x, ccc[4].y, ccc[4].z);
+	//ccc.push_back(faceVertices((int)Direction::South));
+	//ccc.push_back(faceVertices((int)Direction::West));
+	//ccc.push_back(faceVertices((int)Direction::Top));
+	//ccc.push_back(faceVertices((int)Direction::Bot));
+
+	unsigned int VBO, VAO, UVB, IBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &IBO);
 	glGenBuffers(1, &UVB);
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 	glBindVertexArray(VAO);
@@ -82,6 +105,7 @@ int main(void)
 	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
 	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
 	//glBindVertexArray(0);
@@ -107,13 +131,12 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
+		glBindVertexArray(VAO);
 		displayChunk(chunk, shader);
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 		shader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
-
-		glBindVertexArray(VAO);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -121,14 +144,6 @@ int main(void)
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &UVB);
-	for (int i = 0; i < 16; i++)
-	{
-		for (int j = 0; j < 32; j++)
-		{
-			free(chunk[i][j]);
-		}
-		free(chunk[i]);
-	}
 	free(chunk);
 	glfwDestroyWindow(window);
 
@@ -139,11 +154,11 @@ int main(void)
 void createCube(Cube ***cube, Shader shader, glm::vec3 offset)
 {
 	Mesh mesh;
-	for (size_t x = 0; x < 16; x++)
+	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
 	{
-		for (size_t y = 0; y < 32; y++)
+		for (size_t y = 0; y < CHUNK_SIZE_Y; y++)
 		{
-			for (size_t z = 0; z < 16; z++)
+			for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 			{
 				if (!mesh.getCube(x, y, z, cube))
 					continue;
@@ -157,10 +172,16 @@ void createCube(Cube ***cube, Shader shader, glm::vec3 offset)
 void displayCube(int x, int y, int z, Shader shader, Cube ***cube)
 {
 	Mesh mesh;
+	//std::vector<float> a;
 	for (int i = 0; i < 6; i++)
 	{
 		if (!mesh.getNeighbor(x, y, z, (Direction)i, cube))
 		{
+			//for (size_t j = 0; j < 18; j++)
+			//{
+			//	mesh.a.push_back(VERTICES[j + (i * 18)]);
+			//}
+
 			shader.setVec2("spriteID", cube[x][y][z].texCoord);
 			if (i == 4)
 				shader.setVec2("spriteID", glm::vec2(1, 0));
@@ -170,65 +191,63 @@ void displayCube(int x, int y, int z, Shader shader, Cube ***cube)
 			glDrawArrays(GL_TRIANGLES, 6 * i, 6);
 		}
 	}
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.a.size() * sizeof(GLfloat), &mesh.a[0], GL_DYNAMIC_DRAW);
+	//glDrawElements(GL_TRIANGLES, mesh.a.size(), GL_UNSIGNED_INT, nullptr);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.nbIndices * sizeof(GLfloat), &mesh.a[0], GL_DYNAMIC_DRAW);
+	//glDrawElements(GL_TRIANGLES, mesh.nbIndices, GL_UNSIGNED_INT, nullptr);
 }
 
-Cube ***createChunk()
+Chunk createChunk(int chunkId, glm::vec3 offsets, int seed)
 {
-	//std::vector<Cube> cube;
 	int id = 0;
 
 	// Cube* cube = (int*)malloc(M * N * O * sizeof(int));
-	Cube ***cube = (Cube ***)malloc(16 * sizeof(Cube **));
+	Cube ***cube = (Cube ***)malloc(CHUNK_SIZE_X * sizeof(Cube **));
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < CHUNK_SIZE_X; i++)
 	{
-		cube[i] = (Cube **)malloc(32 * sizeof(Cube *));
+		cube[i] = (Cube **)malloc(CHUNK_SIZE_Y * sizeof(Cube *));
 
-		if (cube[i] == NULL)
+		for (int j = 0; j < CHUNK_SIZE_Y; j++)
 		{
-			fprintf(stderr, "Out of memory");
-			exit(0);
-		}
-
-		for (int j = 0; j < 32; j++)
-		{
-			cube[i][j] = (Cube *)malloc(16 * sizeof(Cube));
-			if (cube[i][j] == NULL)
-			{
-				fprintf(stderr, "Out of memory");
-				exit(0);
-			}
+			cube[i][j] = (Cube *)malloc(CHUNK_SIZE_Z * sizeof(Cube));
 		}
 	}
 
-	for (size_t x = 0; x < 16; x++)
+	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
 	{
-		for (size_t y = 0; y < 32; y++)
+		for (size_t y = 0; y < CHUNK_SIZE_Y; y++)
 		{
-			for (size_t z = 0; z < 16; z++)
+			for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 			{
 				int isEmpty = false;
-				if (rand() % 64 < 60)
+				float value = glm::simplex(glm::vec2((x + offsets.x * seed) / 64, (z + offsets.z * seed) / 64));
+				value = (value + 1) / 2;
+
+				value *= CHUNK_SIZE_Y;
+				value = round(value);
+				if (y >= value)
 					isEmpty = true;
-				Cube c(glm::vec3(2 * x, 2 * y, 2 * z), isEmpty, id);
+
+				Cube c(glm::vec3(2 * x, y * 2, 2 * z), isEmpty, id);
 				cube[x][y][z] = c;
 				id++;
 			}
 		}
 	}
-	return cube;
+	Chunk chunk(cube, chunkId - 1);
+	return chunk;
 }
 
-void displayChunk(Cube ***chunk, Shader shader)
+void displayChunk(Chunk *chunk, Shader shader)
 {
-	for (size_t x = 0; x < 4; x++)
+	int o = 0;
+	for (size_t x = 0; x < CHUNK_NB; x++)
 	{
-		for (size_t y = 0; y < 1; y++)
+		for (size_t z = 0; z < CHUNK_NB; z++)
 		{
-			for (size_t z = 0; z < 4; z++)
-			{
-				createCube(chunk, shader, glm::vec3(x * 32, y * 64, z * 32));
-			}
+			createCube(chunk[o].CubeData, shader, glm::vec3(x * CHUNK_SIZE_X * 2, 0 * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2));
+			o++;
 		}
 	}
 }
