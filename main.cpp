@@ -50,15 +50,18 @@ int main(void)
 
 	Chunk *chunk;
 
-	chunk = (Chunk *)malloc(sizeof(Chunk) * CHUNK_NB * CHUNK_NB);
+	chunk = (Chunk *)malloc(sizeof(Chunk) * CHUNK_NB * CHUNK_NB * CHUNK_NB_Y);
 
 	int o = 0;
 	for (size_t x = 0; x < CHUNK_NB; x++)
 	{
-		for (size_t z = 0; z < CHUNK_NB; z++)
+		for (size_t y = 0; y < CHUNK_NB_Y; y++)
 		{
-			chunk[o] = createChunk(o, glm::vec3(x * CHUNK_SIZE_X * 2, 0, z * CHUNK_SIZE_Z * 2), rand());
-			o++;
+			for (size_t z = 0; z < CHUNK_NB; z++)
+			{
+				chunk[o] = createChunk(o, glm::vec3(x * CHUNK_SIZE_X * 2, y * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2), rand());
+				o++;
+			}
 		}
 	}
 
@@ -173,23 +176,24 @@ void displayCube(int x, int y, int z, Shader shader, Cube ***cube)
 {
 	Mesh mesh;
 	//std::vector<float> a;
+	//glDrawArrays(GL_TRIANGLES, 6 * i, 6);
+
 	for (int i = 0; i < 6; i++)
 	{
-		if (!mesh.getNeighbor(x, y, z, (Direction)i, cube))
-		{
-			//for (size_t j = 0; j < 18; j++)
-			//{
-			//	mesh.a.push_back(VERTICES[j + (i * 18)]);
-			//}
-
-			shader.setVec2("spriteID", cube[x][y][z].texCoord);
-			if (i == 4)
-				shader.setVec2("spriteID", glm::vec2(1, 0));
-			if (i == 5)
-				shader.setVec2("spriteID", glm::vec2(2, 0));
-			glBindTexture(GL_TEXTURE_2D, 1);
-			glDrawArrays(GL_TRIANGLES, 6 * i, 6);
-		}
+		//if (!mesh.getNeighbor(x, y, z, (Direction)i, cube))
+		//{
+		//for (size_t j = 0; j < 18; j++)
+		//{
+		//	mesh.a.push_back(VERTICES[j + (i * 18)]);
+		//}
+		shader.setVec2("spriteID", cube[x][y][z].texCoord);
+		if (i == 4)
+			shader.setVec2("spriteID", glm::vec2(1, 0));
+		if (i == 5)
+			shader.setVec2("spriteID", glm::vec2(2, 0));
+		glBindTexture(GL_TEXTURE_2D, 1);
+		glDrawArrays(GL_TRIANGLES, 6 * i, 6);
+		//}
 	}
 	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.a.size() * sizeof(GLfloat), &mesh.a[0], GL_DYNAMIC_DRAW);
 	//glDrawElements(GL_TRIANGLES, mesh.a.size(), GL_UNSIGNED_INT, nullptr);
@@ -221,21 +225,24 @@ Chunk createChunk(int chunkId, glm::vec3 offsets, int seed)
 			for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 			{
 				int isEmpty = false;
-				float value = glm::simplex(glm::vec2((x + offsets.x * seed) / 64, (z + offsets.z * seed) / 64));
+				float value = glm::simplex(glm::vec2((x + offsets.x + seed) / 16, (z + offsets.z + seed) / 16));
 				value = (value + 1) / 2;
 
-				value *= CHUNK_SIZE_Y;
+				value *= 8;
 				value = round(value);
-				if (y >= value)
+				if ((int)value % 2 != 0)
+					value += 1;
+				//printf("%f \n", value);
+				if (value >= CHUNK_SIZE_Y)
 					isEmpty = true;
 
-				Cube c(glm::vec3(2 * x, y * 2, 2 * z), isEmpty, id);
+				Cube c(glm::vec3(2 * x, (y * 2) + value, 2 * z), isEmpty, id);
 				cube[x][y][z] = c;
 				id++;
 			}
 		}
 	}
-	Chunk chunk(cube, chunkId - 1);
+	Chunk chunk(cube, chunkId);
 	return chunk;
 }
 
@@ -244,10 +251,13 @@ void displayChunk(Chunk *chunk, Shader shader)
 	int o = 0;
 	for (size_t x = 0; x < CHUNK_NB; x++)
 	{
-		for (size_t z = 0; z < CHUNK_NB; z++)
+		for (size_t y = 0; y < CHUNK_NB_Y; y++)
 		{
-			createCube(chunk[o].CubeData, shader, glm::vec3(x * CHUNK_SIZE_X * 2, 0 * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2));
-			o++;
+			for (size_t z = 0; z < CHUNK_NB; z++)
+			{
+				createCube(chunk[o].CubeData, shader, glm::vec3(x * CHUNK_SIZE_X * 2, y * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2));
+				o++;
+			}
 		}
 	}
 }
