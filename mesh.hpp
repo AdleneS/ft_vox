@@ -36,30 +36,53 @@ class Mesh
 {
 private:
 public:
-    glm::vec3 Position;
-    std::vector<float> a;
-    Mesh(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f))
+    Mesh()
     {
-        Position = position;
-        //translate(Position);
     }
-    int getCube(int x, int y, int z, Cube ***cube)
+    int getCube(Cube neighbor, Cube current, int dir)
     {
-        if (cube[x][y][z].Id >= 0 && !cube[x][y][z].isEmpty)
-            return 1;
-        else
+        //if (cube[x][y][z].Id >= 0 && !cube[x][y][z].isEmpty)
+        switch (int(dir))
+        {
+        case 0:
+            if (neighbor.Position.z - 2 == current.Position.z)
+                return 1;
+            break;
+        case 1:
+            if (neighbor.Position.x - 2 == current.Position.x)
+                return 1;
+            break;
+        case 2:
+            if (neighbor.Position.z == current.Position.z - 2)
+                return 1;
+            break;
+        case 3:
+            if (neighbor.Position.x == current.Position.x - 2)
+                return 1;
+        case 4:
+            if (neighbor.Position.y - 2 == current.Position.y)
+                return 1;
+            break;
+        case 5:
+            if (neighbor.Position.y == current.Position.y - 2)
+                return 1;
+            break;
+
+        default:
             return 0;
+            break;
+        }
+        return 0;
     }
     int getNeighbor(int x, int y, int z, Direction dir, Cube ***cube)
     {
         CubeCoordinate offsetToCheck = offsets[(int)dir];
-        CubeCoordinate neighborCoord = {x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z};
-
-        if (neighborCoord.x < 0 || neighborCoord.x >= CHUNK_SIZE_X || neighborCoord.y < 0 || neighborCoord.y >= CHUNK_SIZE_Y || neighborCoord.z < 0 || neighborCoord.z >= CHUNK_SIZE_Z)
+        CubeCoordinate nCoord = {x + offsetToCheck.x, y + offsetToCheck.y, z + offsetToCheck.z};
+        if (nCoord.x < 0 || nCoord.x >= CHUNK_SIZE_X || nCoord.y < 0 || nCoord.y >= CHUNK_SIZE_Y || nCoord.z < 0 || nCoord.z >= CHUNK_SIZE_Z)
             return 0;
         else
         {
-            return getCube(neighborCoord.x, neighborCoord.y, neighborCoord.z, cube);
+            return getCube(cube[nCoord.x][nCoord.y][nCoord.z], cube[x][y][z], (int)dir);
         }
     }
 };

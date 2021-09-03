@@ -12,8 +12,8 @@
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-const unsigned int CHUNK_NB = 2;
-const unsigned int CHUNK_NB_Y = 2;
+const unsigned int CHUNK_NB = 50;
+const unsigned int CHUNK_NB_Y = 1;
 const unsigned int CHUNK_SIZE_X = 16;
 const unsigned int CHUNK_SIZE_Y = 32;
 const unsigned int CHUNK_SIZE_Z = 16;
@@ -34,12 +34,22 @@ using namespace glm;
 
 #define GLSL(src) #src
 
+typedef struct s_vox
+{
+    Chunk *chunk;
+
+} t_vox;
+
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 GLuint load_texture(const char *imagePath);
-void displayCube(int x, int y, int z, Shader shader, Cube ***cube);
-Chunk createChunk(int chunkId, glm::vec3 offsets, int seed);
-void displayChunk(Chunk *chunk, Shader shader);
+
+Chunk createCube(int chunkId, glm::vec3 offsets, int seed);
+void displayChunk(Chunk *chunk, Shader shader, t_vox *vox);
+void createChunk(t_vox *vox);
+void createMesh(Chunk *chunk);
+
+t_vox *init();
 
 #endif

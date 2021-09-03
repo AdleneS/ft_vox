@@ -5,15 +5,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.hpp"
 
-void createCube(Cube ***cube, Shader shader, glm::vec3 offset);
-
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-float deltaTime = 0.0f; // time between current frame and last frame
+float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 static void error_callback(int error, const char *description)
@@ -28,6 +26,35 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	(void)mods;
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+}
+
+t_vox *init()
+{
+	t_vox *vox;
+	vox = (t_vox *)malloc(sizeof(t_vox));
+	vox->chunk = (Chunk *)malloc(sizeof(Chunk) * CHUNK_NB * CHUNK_NB * CHUNK_NB);
+
+	return vox;
+}
+
+void createChunk(t_vox *vox)
+{
+	int o = 0;
+	for (size_t x = 0; x < CHUNK_NB; x++)
+	{
+		for (size_t y = 0; y < CHUNK_NB_Y; y++)
+		{
+			for (size_t z = 0; z < CHUNK_NB; z++)
+			{
+				vox->chunk[o] = createCube(o, glm::vec3(x * CHUNK_SIZE_X * 2, y * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2), rand());
+				vox->chunk[o].loadVBO();
+				vox->chunk[o].Vertices.clear();
+				vox->chunk[o].Vertices.shrink_to_fit();
+				vox->chunk[o].freeCubeData();
+				o++;
+			}
+		}
+	}
 }
 
 int main(void)
@@ -48,22 +75,7 @@ int main(void)
 
 	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "ft_vox", NULL, NULL);
 
-	Chunk *chunk;
-
-	chunk = (Chunk *)malloc(sizeof(Chunk) * CHUNK_NB * CHUNK_NB * CHUNK_NB_Y);
-
-	int o = 0;
-	for (size_t x = 0; x < CHUNK_NB; x++)
-	{
-		for (size_t y = 0; y < CHUNK_NB_Y; y++)
-		{
-			for (size_t z = 0; z < CHUNK_NB; z++)
-			{
-				chunk[o] = createChunk(o, glm::vec3(x * CHUNK_SIZE_X * 2, y * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2), rand());
-				o++;
-			}
-		}
-	}
+	t_vox *vox = init();
 
 	if (!window)
 	{
@@ -74,41 +86,10 @@ int main(void)
 	gl3wInit();
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glEnable(GL_DEPTH_TEST);
 
-	//std::vector<glm::vec3> ccc;
-	//ccc = (faceVertices(ccc, 0));
-	//ccc = (faceVertices(ccc, 1));
-	//printf("%f %f %f \n", ccc[4].x, ccc[4].y, ccc[4].z);
-	//ccc.push_back(faceVertices((int)Direction::South));
-	//ccc.push_back(faceVertices((int)Direction::West));
-	//ccc.push_back(faceVertices((int)Direction::Top));
-	//ccc.push_back(faceVertices((int)Direction::Bot));
-
-	unsigned int VBO, VAO, UVB, IBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &IBO);
-	glGenBuffers(1, &UVB);
-	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, SIZEV, VERTICES, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, UVB);
-	glBufferData(GL_ARRAY_BUFFER, SIZEUV, UV, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-	glEnableVertexAttribArray(1);
-
-	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
 	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
 	//glBindVertexArray(0);
@@ -122,6 +103,8 @@ int main(void)
 	load_texture("C:/Users/wks/Desktop/ft_vox/resources/textures/textures.jpg");
 	shader.setInt("texture", 0);
 	glEnable(GL_DEPTH_TEST);
+	createChunk(vox);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
@@ -134,8 +117,7 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-		glBindVertexArray(VAO);
-		displayChunk(chunk, shader);
+		displayChunk(vox->chunk, shader, vox);
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 		shader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
@@ -144,17 +126,17 @@ int main(void)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &UVB);
-	free(chunk);
+	//glDeleteBuffers(1, &vox->VBO);
+	//glDeleteBuffers(1, &vox->UVB);
+	//glDeleteBuffers(1, &vox->TOB);
+	//free(vox->chunk);
 	glfwDestroyWindow(window);
 
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
 }
 
-void createCube(Cube ***cube, Shader shader, glm::vec3 offset)
+void createMesh(Chunk *chunk)
 {
 	Mesh mesh;
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
@@ -163,60 +145,42 @@ void createCube(Cube ***cube, Shader shader, glm::vec3 offset)
 		{
 			for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 			{
-				if (!mesh.getCube(x, y, z, cube))
-					continue;
-				shader.setMat4("model", glm::translate(cube[x][y][z].mat, offset));
-				displayCube(x, y, z, shader, cube);
+				//if (!chunk->CubeData[x][y][z].isEmpty && chunk->CubeData[x][y][z].Id >= 0)
+				for (int i = 0; i < 6; i++)
+				{
+					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData))
+					{
+						for (size_t j = 0; j < 18; j += 3)
+						{
+							chunk->texCoord.push_back(glm::vec2(0, 0));
+							chunk->texCoord.push_back(glm::vec2(0, 0));
+							chunk->texCoord.push_back(glm::vec2(0, 0));
+							chunk->Vertices.push_back(VERTICES[j + (i * 18)] + chunk->CubeData[x][y][z].Position.x);
+							chunk->Vertices.push_back(VERTICES[j + 1 + (i * 18)] + chunk->CubeData[x][y][z].Position.y);
+							chunk->Vertices.push_back(VERTICES[j + 2 + (i * 18)] + chunk->CubeData[x][y][z].Position.z);
+							chunk->size += 3;
+						}
+						for (size_t k = 0; k < 12; k += 2)
+						{
+							chunk->UV.push_back(UV[k + (i * 12)]);
+							chunk->UV.push_back(UV[k + 1 + (i * 12)]);
+							chunk->sizeUV += 2;
+						}
+					}
+				}
+
+				//if (!mesh.getCube(x, y, z, cube))
+				//	continue;
 			}
 		}
 	}
 }
 
-void displayCube(int x, int y, int z, Shader shader, Cube ***cube)
-{
-	Mesh mesh;
-	//std::vector<float> a;
-	//glDrawArrays(GL_TRIANGLES, 6 * i, 6);
-
-	for (int i = 0; i < 6; i++)
-	{
-		//if (!mesh.getNeighbor(x, y, z, (Direction)i, cube))
-		//{
-		//for (size_t j = 0; j < 18; j++)
-		//{
-		//	mesh.a.push_back(VERTICES[j + (i * 18)]);
-		//}
-		shader.setVec2("spriteID", cube[x][y][z].texCoord);
-		if (i == 4)
-			shader.setVec2("spriteID", glm::vec2(1, 0));
-		if (i == 5)
-			shader.setVec2("spriteID", glm::vec2(2, 0));
-		glBindTexture(GL_TEXTURE_2D, 1);
-		glDrawArrays(GL_TRIANGLES, 6 * i, 6);
-		//}
-	}
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.a.size() * sizeof(GLfloat), &mesh.a[0], GL_DYNAMIC_DRAW);
-	//glDrawElements(GL_TRIANGLES, mesh.a.size(), GL_UNSIGNED_INT, nullptr);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.nbIndices * sizeof(GLfloat), &mesh.a[0], GL_DYNAMIC_DRAW);
-	//glDrawElements(GL_TRIANGLES, mesh.nbIndices, GL_UNSIGNED_INT, nullptr);
-}
-
-Chunk createChunk(int chunkId, glm::vec3 offsets, int seed)
+Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
 {
 	int id = 0;
 
-	// Cube* cube = (int*)malloc(M * N * O * sizeof(int));
-	Cube ***cube = (Cube ***)malloc(CHUNK_SIZE_X * sizeof(Cube **));
-
-	for (int i = 0; i < CHUNK_SIZE_X; i++)
-	{
-		cube[i] = (Cube **)malloc(CHUNK_SIZE_Y * sizeof(Cube *));
-
-		for (int j = 0; j < CHUNK_SIZE_Y; j++)
-		{
-			cube[i][j] = (Cube *)malloc(CHUNK_SIZE_Z * sizeof(Cube));
-		}
-	}
+	Chunk chunk(offsets, chunkId);
 
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
 	{
@@ -233,20 +197,35 @@ Chunk createChunk(int chunkId, glm::vec3 offsets, int seed)
 				if ((int)value % 2 != 0)
 					value += 1;
 				//printf("%f \n", value);
-				if (value >= CHUNK_SIZE_Y)
-					isEmpty = true;
+				//if (value >= CHUNK_SIZE_Y)
+				//	isEmpty = true;
+				//printf("%f || ", value);
+				value = 0;
+				chunk.CubeData[x][y][z].Position = glm::vec3(2 * x, (y * 2) + value, 2 * z);
+				chunk.CubeData[x][y][z].Id = id;
+				chunk.CubeData[x][y][z].isEmpty = isEmpty;
 
-				Cube c(glm::vec3(2 * x, (y * 2) + value, 2 * z), isEmpty, id);
-				cube[x][y][z] = c;
-				id++;
+				id = id + 1 + chunkId * CHUNK_NB;
 			}
 		}
 	}
-	Chunk chunk(cube, chunkId);
+
+	createMesh(&chunk);
+	//chunk.loadVBO();
+
+	//for (int i = 0; i < CHUNK_SIZE_X; i++)
+	//{
+	//	for (int j = 0; j < CHUNK_SIZE_Y; j++)
+	//	{
+	//		free(cube[i][j]);
+	//	}
+	//	free(cube[i]);
+	//}
+	//free(cube);
 	return chunk;
 }
 
-void displayChunk(Chunk *chunk, Shader shader)
+void displayChunk(Chunk *chunk, Shader shader, t_vox *vox)
 {
 	int o = 0;
 	for (size_t x = 0; x < CHUNK_NB; x++)
@@ -255,7 +234,11 @@ void displayChunk(Chunk *chunk, Shader shader)
 		{
 			for (size_t z = 0; z < CHUNK_NB; z++)
 			{
-				createCube(chunk[o].CubeData, shader, glm::vec3(x * CHUNK_SIZE_X * 2, y * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2));
+				shader.setMat4("model", chunk[o].mat);
+				glBindVertexArray(chunk[o].VAO);
+				//glBindBuffer(GL_ARRAY_BUFFER, chunk[o].VBO);
+				glDrawArrays(GL_TRIANGLES, 0, chunk[o].size);
+				//glDrawArrays(GL_TRIANGLES, 0, 36);
 				o++;
 			}
 		}

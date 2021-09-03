@@ -132,7 +132,6 @@ class Cube
 public:
 	int Id;
 	glm::vec3 Position;
-	glm::mat4 mat;
 	bool isEmpty;
 	glm::vec2 texCoord;
 
@@ -140,21 +139,11 @@ public:
 	{
 		Position = position;
 		Id = id;
-		mat = glm::mat4(1.0f);
 		isEmpty = isempty;
 		texCoord = texcoord;
-		translate(Position);
-	}
-
-	//Cube(float posX, float posY, float posZ)
-	//{
-	//	Position = glm::vec3(posX, posY, posZ);
-	//}
-	void translate(glm::vec3 v)
-	{
-		mat = glm::translate(mat, v);
 	}
 
 private:
 };
+
 #endif
