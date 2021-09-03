@@ -134,13 +134,15 @@ public:
 	glm::vec3 Position;
 	bool isEmpty;
 	glm::vec2 texCoord;
+	float value;
 
 	Cube(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), bool isempty = false, int id = -1, glm::vec2 texcoord = glm::vec2(0, 0))
 	{
-		Position = position;
 		Id = id;
+		Position = position;
 		isEmpty = isempty;
 		texCoord = texcoord;
+		value = 0;
 	}
 
 private:

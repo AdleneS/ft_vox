@@ -33,7 +33,7 @@ t_vox *init()
 	t_vox *vox;
 	vox = (t_vox *)malloc(sizeof(t_vox));
 	vox->chunk = (Chunk *)malloc(sizeof(Chunk) * CHUNK_NB * CHUNK_NB * CHUNK_NB);
-
+	vox->seed = rand();
 	return vox;
 }
 
@@ -46,7 +46,7 @@ void createChunk(t_vox *vox)
 		{
 			for (size_t z = 0; z < CHUNK_NB; z++)
 			{
-				vox->chunk[o] = createCube(o, glm::vec3(x * CHUNK_SIZE_X * 2, y * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2), rand());
+				vox->chunk[o] = createCube(o, glm::vec3(x * CHUNK_SIZE_X * 2, y * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2), vox->seed);
 				vox->chunk[o].loadVBO();
 				vox->chunk[o].Vertices.clear();
 				vox->chunk[o].Vertices.shrink_to_fit();
@@ -100,7 +100,7 @@ int main(void)
 	glfwSetKeyCallback(window, key_callback);
 
 	shader.use();
-	load_texture("C:/Users/wks/Desktop/ft_vox/resources/textures/textures.jpg");
+	load_texture("C:/Users/wks/Desktop/ft_vox/resources/textures/textures2.jpg");
 	shader.setInt("texture", 0);
 	glEnable(GL_DEPTH_TEST);
 	createChunk(vox);
@@ -113,7 +113,7 @@ int main(void)
 
 		processInput(window);
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.69f, 0.94f, 0.95f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
@@ -139,25 +139,36 @@ int main(void)
 void createMesh(Chunk *chunk)
 {
 	Mesh mesh;
+	glm::vec2 tex = glm::vec2(0, 0);
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
 	{
 		for (size_t y = 0; y < CHUNK_SIZE_Y; y++)
 		{
 			for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 			{
-				//if (!chunk->CubeData[x][y][z].isEmpty && chunk->CubeData[x][y][z].Id >= 0)
+				if (chunk->CubeData[x][y][z].isEmpty || chunk->CubeData[x][y][z].Id < 0)
+					continue;
 				for (int i = 0; i < 6; i++)
 				{
+					if (i == 4)
+						tex = glm::vec2(1, 0);
+					else if (i == 5)
+						tex = glm::vec2(2, 0);
+					else
+						tex = glm::vec2(0, 0);
+					if (y < CHUNK_SIZE_Y - 10)
+						tex = glm::vec2(0, 1);
+					else if (y < CHUNK_SIZE_Y - 7)
+						tex = glm::vec2(1, 1);
+
 					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData))
 					{
 						for (size_t j = 0; j < 18; j += 3)
 						{
-							chunk->texCoord.push_back(glm::vec2(0, 0));
-							chunk->texCoord.push_back(glm::vec2(0, 0));
-							chunk->texCoord.push_back(glm::vec2(0, 0));
 							chunk->Vertices.push_back(VERTICES[j + (i * 18)] + chunk->CubeData[x][y][z].Position.x);
 							chunk->Vertices.push_back(VERTICES[j + 1 + (i * 18)] + chunk->CubeData[x][y][z].Position.y);
 							chunk->Vertices.push_back(VERTICES[j + 2 + (i * 18)] + chunk->CubeData[x][y][z].Position.z);
+							chunk->texCoord.push_back(tex);
 							chunk->size += 3;
 						}
 						for (size_t k = 0; k < 12; k += 2)
@@ -184,29 +195,45 @@ Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
 
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
 	{
-		for (size_t y = 0; y < CHUNK_SIZE_Y; y++)
+		for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 		{
-			for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
+			float n = 0.5;
+			float a = 0.55;
+			float freq = 0.0026;
+			int isEmpty = false;
+			double value = 0;
+			for (int octave = 0; octave < 8; octave++)
 			{
-				int isEmpty = false;
-				float value = glm::simplex(glm::vec2((x + offsets.x + seed) / 16, (z + offsets.z + seed) / 16));
-				value = (value + 1) / 2;
-
-				value *= 8;
-				value = round(value);
-				if ((int)value % 2 != 0)
-					value += 1;
-				//printf("%f \n", value);
-				//if (value >= CHUNK_SIZE_Y)
-				//	isEmpty = true;
-				//printf("%f || ", value);
-				value = 0;
-				chunk.CubeData[x][y][z].Position = glm::vec3(2 * x, (y * 2) + value, 2 * z);
-				chunk.CubeData[x][y][z].Id = id;
-				chunk.CubeData[x][y][z].isEmpty = isEmpty;
-
-				id = id + 1 + chunkId * CHUNK_NB;
+				value = a * glm::simplex(glm::vec2((x * 2 + offsets.x + seed) * freq, (z * 2 + offsets.z + seed) * freq));
+				n += value;
+				a *= 0.5;
+				freq *= 2.0;
 			}
+
+			//float value = glm::simplex(glm::vec2((x + offsets.x + seed), (z + offsets.z + seed)));
+			//value += glm::simplex(glm::vec2((y + offsets.y + seed) / 16, (z + offsets.z + seed) / 16));
+			//value += glm::simplex(glm::vec2((z + offsets.z + seed) / 16, (x + offsets.x + seed) / 16));
+			n = (n + 1) / 2;
+
+			n *= CHUNK_SIZE_Y - 1;
+			if (n >= CHUNK_SIZE_Y - 1)
+				n = CHUNK_SIZE_Y - 1;
+			if (n <= CHUNK_SIZE_Y - 10)
+				n = CHUNK_SIZE_Y - 11;
+
+			//n = round(n);
+			//if ((int)n % 2 != 0)
+			//	n += 1;
+			//if (value >= CHUNK_SIZE_X || value >= CHUNK_SIZE_Y || value >= CHUNK_SIZE_Z)
+			//	isEmpty = true;
+			//printf("%f || ", value);
+			//printf("%f || ", value);
+			chunk.CubeData[x][(int)n][z].Position = glm::vec3((2 * x), ((int)n * 2), (2 * z));
+			chunk.CubeData[x][(int)n][z].Id = id;
+			chunk.CubeData[x][(int)n][z].isEmpty = false;
+			chunk.CubeData[x][(int)n][z].value = n;
+
+			id = id + 1 + chunkId * CHUNK_NB;
 		}
 	}
 

@@ -41,7 +41,8 @@ public:
     }
     int getCube(Cube neighbor, Cube current, int dir)
     {
-        //if (cube[x][y][z].Id >= 0 && !cube[x][y][z].isEmpty)
+        if (neighbor.Id < 0 || neighbor.isEmpty)
+            return 0;
         switch (int(dir))
         {
         case 0:
@@ -67,7 +68,6 @@ public:
             if (neighbor.Position.y == current.Position.y - 2)
                 return 1;
             break;
-
         default:
             return 0;
             break;
@@ -82,6 +82,21 @@ public:
             return 0;
         else
         {
+            /*if (cube[nCoord.x][nCoord.y][nCoord.z].value < cube[x][y][z].value)
+            {
+                nCoord.x += cube[x][y][z].value / 2;
+                nCoord.y += cube[x][y][z].value / 2;
+                nCoord.z += cube[x][y][z].value / 2;
+            }
+            else if (cube[nCoord.x][nCoord.y][nCoord.z].value > cube[x][y][z].value)
+            {
+                float value = cube[nCoord.x][nCoord.y][nCoord.z].value;
+                nCoord.x -= value / 2;
+                nCoord.y -= value / 2;
+                nCoord.z -= value / 2;
+            }
+            if (nCoord.x < 0 || nCoord.x >= CHUNK_SIZE_X || nCoord.y < 0 || nCoord.y >= CHUNK_SIZE_Y || nCoord.z < 0 || nCoord.z >= CHUNK_SIZE_Z)
+                return 0;*/
             return getCube(cube[nCoord.x][nCoord.y][nCoord.z], cube[x][y][z], (int)dir);
         }
     }

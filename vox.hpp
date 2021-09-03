@@ -12,10 +12,10 @@
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-const unsigned int CHUNK_NB = 50;
+const unsigned int CHUNK_NB = 55;
 const unsigned int CHUNK_NB_Y = 1;
 const unsigned int CHUNK_SIZE_X = 16;
-const unsigned int CHUNK_SIZE_Y = 32;
+const unsigned int CHUNK_SIZE_Y = 55;
 const unsigned int CHUNK_SIZE_Z = 16;
 
 #include "shader.hpp"
@@ -37,6 +37,7 @@ using namespace glm;
 typedef struct s_vox
 {
     Chunk *chunk;
+    int seed;
 
 } t_vox;
 

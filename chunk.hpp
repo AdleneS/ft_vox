@@ -33,6 +33,7 @@ public:
 		Position = position;
 		translate(Position);
 		initCubeData();
+		memCubeData();
 	}
 	~Chunk();
 	void initCubeData()
@@ -42,10 +43,22 @@ public:
 		for (int i = 0; i < CHUNK_SIZE_X; i++)
 		{
 			CubeData[i] = (Cube **)malloc(CHUNK_SIZE_Y * sizeof(Cube *));
-
 			for (int j = 0; j < CHUNK_SIZE_Y; j++)
 			{
 				CubeData[i][j] = (Cube *)malloc(CHUNK_SIZE_Z * sizeof(Cube));
+			}
+		}
+	}
+	void memCubeData()
+	{
+		for (size_t x = 0; x < CHUNK_SIZE_X; x++)
+		{
+			for (size_t y = 0; y < CHUNK_SIZE_Y; y++)
+			{
+				for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
+				{
+					CubeData[x][y][z].isEmpty = true;
+				}
 			}
 		}
 	}
@@ -75,19 +88,19 @@ public:
 		glGenBuffers(1, &TOB);
 
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), &Vertices[0], GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), &Vertices[0], GL_STATIC_DRAW);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 		glEnableVertexAttribArray(0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, UVB);
-		glBufferData(GL_ARRAY_BUFFER, sizeUV * sizeof(float), &UV[0], GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeUV * sizeof(float), &UV[0], GL_STATIC_DRAW);
 
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
 		glEnableVertexAttribArray(1);
 
 		glBindBuffer(GL_ARRAY_BUFFER, TOB);
-		glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), &texCoord[0], GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, texCoord.size() * sizeof(glm::vec2), &texCoord[0], GL_STATIC_DRAW);
 
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
 		glEnableVertexAttribArray(2);
