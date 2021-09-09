@@ -46,26 +46,26 @@ public:
         switch (int(dir))
         {
         case 0:
-            if (neighbor.Position.z - 2 == current.Position.z)
+            if (neighbor.Position.z - 1 == current.Position.z)
                 return 1;
             break;
         case 1:
-            if (neighbor.Position.x - 2 == current.Position.x)
+            if (neighbor.Position.x - 1 == current.Position.x)
                 return 1;
             break;
         case 2:
-            if (neighbor.Position.z == current.Position.z - 2)
+            if (neighbor.Position.z == current.Position.z - 1)
                 return 1;
             break;
         case 3:
-            if (neighbor.Position.x == current.Position.x - 2)
+            if (neighbor.Position.x == current.Position.x - 1)
                 return 1;
         case 4:
-            if (neighbor.Position.y - 2 == current.Position.y)
+            if (neighbor.Position.y - 1 == current.Position.y)
                 return 1;
             break;
         case 5:
-            if (neighbor.Position.y == current.Position.y - 2)
+            if (neighbor.Position.y == current.Position.y - 1)
                 return 1;
             break;
         default:

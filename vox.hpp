@@ -12,11 +12,10 @@
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-const unsigned int CHUNK_NB = 55;
-const unsigned int CHUNK_NB_Y = 1;
 const unsigned int CHUNK_SIZE_X = 16;
-const unsigned int CHUNK_SIZE_Y = 55;
+const unsigned int CHUNK_SIZE_Y = 256;
 const unsigned int CHUNK_SIZE_Z = 16;
+const float VIEW_DISTANCE = 16 * 16;
 
 #include "shader.hpp"
 #include "camera.hpp"
@@ -37,6 +36,10 @@ using namespace glm;
 typedef struct s_vox
 {
     Chunk *chunk;
+    unsigned int chunkNbX;
+    unsigned int chunkNbZ;
+    unsigned int chunkCount;
+
     int seed;
 
 } t_vox;
@@ -46,8 +49,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 GLuint load_texture(const char *imagePath);
 
-Chunk createCube(int chunkId, glm::vec3 offsets, int seed);
-void displayChunk(Chunk *chunk, Shader shader, t_vox *vox);
+Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
+void displayChunk(Shader shader, t_vox *vox);
 void createChunk(t_vox *vox);
 void createMesh(Chunk *chunk);
 

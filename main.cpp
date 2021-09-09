@@ -5,7 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.hpp"
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 256.0f, 3.0f));
 
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -32,7 +32,11 @@ t_vox *init()
 {
 	t_vox *vox;
 	vox = (t_vox *)malloc(sizeof(t_vox));
-	vox->chunk = (Chunk *)malloc(sizeof(Chunk) * CHUNK_NB * CHUNK_NB * CHUNK_NB);
+	vox->chunkNbX = 2;
+	vox->chunkNbZ = 2;
+	vox->chunkCount = 0;
+
+	vox->chunk = (Chunk *)malloc(sizeof(Chunk) * vox->chunkNbX * vox->chunkNbZ * vox->chunkNbX);
 	vox->seed = rand();
 	return vox;
 }
@@ -40,21 +44,39 @@ t_vox *init()
 void createChunk(t_vox *vox)
 {
 	int o = 0;
-	for (size_t x = 0; x < CHUNK_NB; x++)
+	for (size_t x = 0; x < vox->chunkNbX; x++)
 	{
-		for (size_t y = 0; y < CHUNK_NB_Y; y++)
+		for (size_t z = 0; z < vox->chunkNbZ; z++)
 		{
-			for (size_t z = 0; z < CHUNK_NB; z++)
-			{
-				vox->chunk[o] = createCube(o, glm::vec3(x * CHUNK_SIZE_X * 2, y * CHUNK_SIZE_Y * 2, z * CHUNK_SIZE_Z * 2), vox->seed);
-				vox->chunk[o].loadVBO();
-				vox->chunk[o].Vertices.clear();
-				vox->chunk[o].Vertices.shrink_to_fit();
-				vox->chunk[o].freeCubeData();
-				o++;
-			}
+			vox->chunk[o] = createCube(vox, o, glm::vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed);
+			vox->chunk[o].loadVBO();
+			vox->chunk[o].Vertices.clear();
+			vox->chunk[o].Vertices.shrink_to_fit();
+			vox->chunk[o].freeCubeData();
+			o++;
 		}
 	}
+	vox->chunkCount = o - 1;
+}
+
+void createExpendedChunkX(t_vox *vox, int x, int z)
+{
+	int o = vox->chunkCount + 1;
+	vox->chunk[o] = createCube(vox, o, glm::vec3((vox->chunkNbX - 1) * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed);
+	vox->chunk[o].loadVBO();
+	vox->chunk[o].Vertices.clear();
+	vox->chunk[o].Vertices.shrink_to_fit();
+	vox->chunk[o].freeCubeData();
+	//vox->chunkNbX++;
+	vox->chunkCount++;
+}
+
+void expendChunkMemoryX(t_vox *vox)
+{
+	vox->chunkNbX++;
+	if (!(vox->chunk = (Chunk *)realloc(vox->chunk, sizeof(Chunk) * vox->chunkNbX * vox->chunkNbZ * vox->chunkNbX)))
+		exit(0);
+	//createChunk(vox);
 }
 
 int main(void)
@@ -117,11 +139,13 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-		displayChunk(vox->chunk, shader, vox);
+		displayChunk(shader, vox);
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 		shader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
+
+		//printf("%f | %f | %f \n", camera.Position.x, camera.Position.y, camera.Position.z);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -187,7 +211,7 @@ void createMesh(Chunk *chunk)
 	}
 }
 
-Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
+Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 {
 	int id = 0;
 
@@ -199,20 +223,17 @@ Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
 		{
 			float n = 0.5;
 			float a = 0.55;
-			float freq = 0.0026;
+			float freq = 0.0016;
 			int isEmpty = false;
 			double value = 0;
 			for (int octave = 0; octave < 8; octave++)
 			{
-				value = a * glm::simplex(glm::vec2((x * 2 + offsets.x + seed) * freq, (z * 2 + offsets.z + seed) * freq));
+				value = a * glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq));
 				n += value;
 				a *= 0.5;
 				freq *= 2.0;
 			}
 
-			//float value = glm::simplex(glm::vec2((x + offsets.x + seed), (z + offsets.z + seed)));
-			//value += glm::simplex(glm::vec2((y + offsets.y + seed) / 16, (z + offsets.z + seed) / 16));
-			//value += glm::simplex(glm::vec2((z + offsets.z + seed) / 16, (x + offsets.x + seed) / 16));
 			n = (n + 1) / 2;
 
 			n *= CHUNK_SIZE_Y - 1;
@@ -228,12 +249,12 @@ Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
 			//	isEmpty = true;
 			//printf("%f || ", value);
 			//printf("%f || ", value);
-			chunk.CubeData[x][(int)n][z].Position = glm::vec3((2 * x), ((int)n * 2), (2 * z));
+			chunk.CubeData[x][(int)n][z].Position = glm::vec3((x), ((int)n), (z));
 			chunk.CubeData[x][(int)n][z].Id = id;
 			chunk.CubeData[x][(int)n][z].isEmpty = false;
 			chunk.CubeData[x][(int)n][z].value = n;
 
-			id = id + 1 + chunkId * CHUNK_NB;
+			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
 		}
 	}
 
@@ -252,22 +273,38 @@ Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
 	return chunk;
 }
 
-void displayChunk(Chunk *chunk, Shader shader, t_vox *vox)
+void displayChunk(Shader shader, t_vox *vox)
 {
 	int o = 0;
-	for (size_t x = 0; x < CHUNK_NB; x++)
+	for (size_t x = 0; x < vox->chunkNbX; x++)
 	{
-		for (size_t y = 0; y < CHUNK_NB_Y; y++)
+		for (size_t z = 0; z < vox->chunkNbZ; z++)
 		{
-			for (size_t z = 0; z < CHUNK_NB; z++)
+			//if (o == 0)
+			//{
+			//printf("%f | %f | %f \n", chunk[o].Position.x, chunk[o].Position.y, chunk[o].Position.z);
+			//printf("%f | %f | %f \n", camera.Position.x, camera.Position.y, camera.Position.z);
+			//printf("%f \n", sqrt(pow((camera.Position.x - (chunk[o].Position.x + 8)), 2) + pow((camera.Position.z - (chunk[o].Position.z + 8)), 2)));
+			//}
+			if (sqrt(pow((camera.Position.x - (vox->chunk[o].Position.x + 8)), 2) + pow((camera.Position.z - (vox->chunk[o].Position.z + 8)), 2)) > VIEW_DISTANCE)
 			{
-				shader.setMat4("model", chunk[o].mat);
-				glBindVertexArray(chunk[o].VAO);
-				//glBindBuffer(GL_ARRAY_BUFFER, chunk[o].VBO);
-				glDrawArrays(GL_TRIANGLES, 0, chunk[o].size);
-				//glDrawArrays(GL_TRIANGLES, 0, 36);
 				o++;
+				continue;
 			}
+			if (camera.Position.x + 16 >= vox->chunk[vox->chunkNbX - 1].Position.x)
+			{
+
+				//printf("Create new one \n");
+				printf("%f | %f\n", camera.Position.x + 16, vox->chunk[vox->chunkNbX - 1].Position.x);
+				expendChunkMemoryX(vox);
+				createExpendedChunkX(vox, 0, 0);
+				//o++;
+				//continue;
+			}
+			shader.setMat4("model", vox->chunk[o].mat);
+			glBindVertexArray(vox->chunk[o].VAO);
+			glDrawArrays(GL_TRIANGLES, 0, vox->chunk[o].size);
+			o++;
 		}
 	}
 }
