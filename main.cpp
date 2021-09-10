@@ -5,7 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.hpp"
 
-Camera camera(glm::vec3(0.0f, 256.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 256.0f, 0.0f));
 
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -35,64 +35,29 @@ t_vox *init()
 	vox->chunkNbX = 4;
 	vox->chunkNbZ = 2;
 	vox->chunkCount = 0;
-
-	//vox->chunk = (Chunk *)malloc(sizeof(Chunk) * vox->chunkNbX * vox->chunkNbZ);
-	//vox->chunk = new Chunk[vox->chunkNbX * vox->chunkNbZ];
 	vox->seed = rand();
 	return vox;
 }
 
-void createChunk(t_vox *vox)
+void createExpendedChunkX(t_vox *vox, std::vector<Chunk *> *chunks, float x, float z, int o)
 {
-	int o = 0;
-	for (size_t x = 0; x < vox->chunkNbX; x++)
-	{
-		for (size_t z = 0; z < vox->chunkNbZ; z++)
-		{
-			vox->chunks.push_back(createCube(vox, o, glm::vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed));
-			vox->chunks[o].loadVBO();
-			vox->chunks[o].Vertices.clear();
-			vox->chunks[o].Vertices.shrink_to_fit();
-			vox->chunks[o].freeCubeData();
-			o++;
-		}
-	}
-	vox->chunkCount = o - 1;
-}
 
-void createExpendedChunkX(t_vox *vox, int x, int z)
-{
-	int o = vox->chunkCount + 1;
-
-	vox->chunks.push_back(createCube(vox, o, glm::vec3((x + 1) * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed));
-	vox->chunks[o].loadVBO();
-	vox->chunks[o].Vertices.clear();
-	vox->chunks[o].Vertices.shrink_to_fit();
-	vox->chunks[o].freeCubeData();
+	chunks->push_back(new Chunk(createCube(vox, o, glm::vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed)));
+	chunks->back()->loadVBO();
+	chunks->back()->Vertices.clear();
+	chunks->back()->Vertices.shrink_to_fit();
+	chunks->back()->freeCubeData();
 	vox->chunkCount++;
 	vox->chunkNbX++;
-}
-void createExpendedChunkZ(t_vox *vox)
-{
-	int o = vox->chunkCount + 1;
-	for (size_t i = 0; i < vox->chunkNbX; i++)
-	{
-		vox->chunks.push_back(createCube(vox, o, glm::vec3(i * CHUNK_SIZE_X, 0, vox->chunkNbZ * CHUNK_SIZE_Z), vox->seed));
-		vox->chunks[o].loadVBO();
-		vox->chunks[o].Vertices.clear();
-		vox->chunks[o].Vertices.shrink_to_fit();
-		vox->chunks[o].freeCubeData();
-		vox->chunkCount++;
-		o++;
-	}
-	vox->chunkNbZ++;
 }
 
 int main(void)
 {
 
 	GLFWwindow *window;
-	Cube cube;
+	std::vector<Chunk *> chunks;
+	t_vox *vox = init();
+
 	glfwSetErrorCallback(error_callback);
 
 	if (!glfwInit())
@@ -105,8 +70,6 @@ int main(void)
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "ft_vox", NULL, NULL);
-
-	t_vox *vox = init();
 
 	if (!window)
 	{
@@ -121,10 +84,6 @@ int main(void)
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glEnable(GL_DEPTH_TEST);
 
-	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-	//glBindVertexArray(0);
-
 	Shader shader("C:/Users/wks/Desktop/ft_vox/vertex.glsl", "C:/Users/wks/Desktop/ft_vox/fragment.glsl");
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -134,7 +93,7 @@ int main(void)
 	load_texture("C:/Users/wks/Desktop/ft_vox/resources/textures/textures2.jpg");
 	shader.setInt("texture", 0);
 	glEnable(GL_DEPTH_TEST);
-	createChunk(vox);
+	//createChunk(vox);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -148,7 +107,7 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-		displayChunk(shader, vox);
+		displayChunk(shader, vox, &chunks);
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 		shader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
@@ -212,9 +171,6 @@ void createMesh(Chunk *chunk)
 						}
 					}
 				}
-
-				//if (!mesh.getCube(x, y, z, cube))
-				//	continue;
 			}
 		}
 	}
@@ -271,31 +227,42 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	return chunk;
 }
 
-void displayChunk(Shader shader, t_vox *vox)
+void displayChunk(Shader shader, t_vox *vox, std::vector<Chunk *> *chunks)
 {
-	int o = 0;
-	int pute = vox->chunkNbX;
-	for (size_t x = 0; x < vox->chunkNbX; x++)
-	{
-		for (size_t z = 0; z < vox->chunkNbZ; z++)
+	int new_view_distance_x = VIEW_DISTANCE + ceil((int)camera.Position.x / 16);
+	int new_view_distance_z = VIEW_DISTANCE + ceil((int)camera.Position.z / 16);
+	size_t o = 0;
+
+	if (chunks->size() > 0)
+		for (auto i = 0; i < chunks->size(); i++)
 		{
-			if (sqrt(pow((camera.Position.x - (vox->chunks[o].Position.x + 8)), 2) + pow((camera.Position.z - (vox->chunks[o].Position.z + 8)), 2)) > VIEW_DISTANCE)
+			//printf("%d\n", chunks->size());
+			shader.setMat4("model", chunks->at(i)->mat);
+			glBindVertexArray(chunks->at(i)->VAO);
+			glDrawArrays(GL_TRIANGLES, 0, chunks->at(i)->size);
+		}
+
+	for (size_t x = ceil((int)camera.Position.x / 16); x < new_view_distance_x; x++)
+	{
+		for (size_t z = ceil((int)camera.Position.z / 16); z < new_view_distance_z; z++)
+		{
+			int find = 0;
+			if (chunks->size() == 0)
 			{
-				o++;
+				createExpendedChunkX(vox, chunks, (float)x, (float)z, o);
 				continue;
 			}
-			//printf("%f \n", vox->chunks[o].Position.z);
-			if ((camera.Position.z >= vox->chunks[o].Position.z && camera.Position.z <= vox->chunks[o].Position.z + 16) && (camera.Position.x >= vox->chunks[o].Position.x && camera.Position.x <= vox->chunks[o].Position.x + 16))
+			for (auto i = 0; i < chunks->size(); i++)
 			{
-				printf("Create new one at %d \n", o);
-				//printf("Create new one at %d \n", o);
-				createExpendedChunkX(vox, x, z);
-				//o++;
-				//continue;
+				//printf("%f %f\n", round(chunks->at(i)->Position.x), round(x * CHUNK_SIZE_X));
+				if (round(chunks->at(i)->Position.x) == round(x * CHUNK_SIZE_X) && round(chunks->at(i)->Position.z) == round(z * CHUNK_SIZE_Z))
+				{
+					find = 1;
+					break;
+				}
 			}
-			shader.setMat4("model", vox->chunks[o].mat);
-			glBindVertexArray(vox->chunks[o].VAO);
-			glDrawArrays(GL_TRIANGLES, 0, vox->chunks[o].size);
+			if (!find)
+				createExpendedChunkX(vox, chunks, x, z, o);
 			o++;
 		}
 	}

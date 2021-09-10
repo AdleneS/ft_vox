@@ -12,10 +12,10 @@
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-const unsigned int CHUNK_SIZE_X = 16;
-const unsigned int CHUNK_SIZE_Y = 256;
-const unsigned int CHUNK_SIZE_Z = 16;
-const float VIEW_DISTANCE = 16 * 16;
+const float CHUNK_SIZE_X = 16;
+const float CHUNK_SIZE_Y = 256;
+const float CHUNK_SIZE_Z = 16;
+const float VIEW_DISTANCE = 16;
 
 #include "shader.hpp"
 #include "camera.hpp"
@@ -35,7 +35,6 @@ using namespace glm;
 
 typedef struct s_vox
 {
-    std::vector<Chunk> chunks;
     unsigned int chunkNbX;
     unsigned int chunkNbZ;
     unsigned int chunkCount;
@@ -50,7 +49,7 @@ void processInput(GLFWwindow *window);
 GLuint load_texture(const char *imagePath);
 
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
-void displayChunk(Shader shader, t_vox *vox);
+void displayChunk(Shader shader, t_vox *vox, std::vector<Chunk *> *chunks);
 void createChunk(t_vox *vox);
 void createMesh(Chunk *chunk);
 
