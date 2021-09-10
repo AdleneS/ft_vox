@@ -35,7 +35,7 @@ using namespace glm;
 
 typedef struct s_vox
 {
-    Chunk *chunk;
+    std::vector<Chunk> chunks;
     unsigned int chunkNbX;
     unsigned int chunkNbZ;
     unsigned int chunkCount;
