@@ -78,6 +78,13 @@ public:
 	{
 		mat = glm::translate(mat, v);
 	}
+	void freeBuffer()
+	{
+		glDeleteBuffers(1, &VAO);
+		glDeleteBuffers(1, &VBO);
+		glDeleteBuffers(1, &UVB);
+		glDeleteBuffers(1, &TOB);
+	}
 
 	void loadVBO()
 	{

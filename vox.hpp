@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <map>
+#include <unordered_map>
 
 //#define GLFW_DLL
 //#include <GL/glew.h>
@@ -22,6 +24,7 @@ const float VIEW_DISTANCE = 16;
 #include "cube.hpp"
 #include "chunk.hpp"
 #include "mesh.hpp"
+#include "vector3.hpp"
 
 #include "glfw/include/GLFW/glfw3.h"
 #include "glm/glm.hpp"
@@ -49,7 +52,7 @@ void processInput(GLFWwindow *window);
 GLuint load_texture(const char *imagePath);
 
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
-void displayChunk(Shader shader, t_vox *vox, std::vector<Chunk *> *chunks);
+void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk, MyHashFunction> *chunks);
 void createChunk(t_vox *vox);
 void createMesh(Chunk *chunk);
 

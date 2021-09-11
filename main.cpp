@@ -5,6 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.hpp"
 
+typedef std::pair<vec3, Chunk> PosChunk;
 Camera camera(glm::vec3(0.0f, 256.0f, 0.0f));
 
 float lastX = SCR_WIDTH / 2.0f;
@@ -39,23 +40,26 @@ t_vox *init()
 	return vox;
 }
 
-void createExpendedChunkX(t_vox *vox, std::vector<Chunk *> *chunks, float x, float z, int o)
+void createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk, MyHashFunction> *chunks, int x, int z, int o)
 {
-
-	chunks->push_back(new Chunk(createCube(vox, o, glm::vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed)));
-	chunks->back()->loadVBO();
-	chunks->back()->Vertices.clear();
-	chunks->back()->Vertices.shrink_to_fit();
-	chunks->back()->freeCubeData();
-	vox->chunkCount++;
-	vox->chunkNbX++;
+	if (chunks->find(vec3(x, 0, z)) == chunks->end())
+	{
+		chunks->emplace(PosChunk(vec3(x, 0, z), createCube(vox, o, vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed)));
+		chunks->at(vec3(x, 0, z)).loadVBO();
+		chunks->at(vec3(x, (float)0, z)).Vertices.clear();
+		chunks->at(vec3(x, (float)0, z)).Vertices.shrink_to_fit();
+		chunks->at(vec3(x, (float)0, z)).freeCubeData();
+		vox->chunkCount++;
+		vox->chunkNbX++;
+	}
 }
 
 int main(void)
 {
 
 	GLFWwindow *window;
-	std::vector<Chunk *> chunks;
+	//std::vector<Chunk *> chunks;
+	std::unordered_map<vec3, Chunk, MyHashFunction> chunks;
 	t_vox *vox = init();
 
 	glfwSetErrorCallback(error_callback);
@@ -93,7 +97,6 @@ int main(void)
 	shader.setInt("texture", 0);
 	glEnable(GL_DEPTH_TEST);
 	//createChunk(vox);
-
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
@@ -112,14 +115,9 @@ int main(void)
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 
-		//printf("%f | %f | %f \n", camera.Position.x, camera.Position.y, camera.Position.z);
-
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	//glDeleteBuffers(1, &vox->VBO);
-	//glDeleteBuffers(1, &vox->UVB);
-	//glDeleteBuffers(1, &vox->TOB);
 	//free(vox->chunk);
 	glfwDestroyWindow(window);
 
@@ -226,45 +224,49 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	return chunk;
 }
 
-void displayChunk(Shader shader, t_vox *vox, std::vector<Chunk *> *chunks)
+void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk, MyHashFunction> *chunks)
 {
-	int new_view_distance_x = (VIEW_DISTANCE / 2) + ceil((int)camera.Position.x / CHUNK_SIZE_X);
-	int new_view_distance_z = (VIEW_DISTANCE / 2) + ceil((int)camera.Position.z / CHUNK_SIZE_Z);
+	int new_view_distance_x = (VIEW_DISTANCE) + ceil((int)camera.Position.x / CHUNK_SIZE_X);
+	int new_view_distance_z = (VIEW_DISTANCE) + ceil((int)camera.Position.z / CHUNK_SIZE_Z);
 	size_t o = 0;
-
+	std::vector<vec3> vec;
 	if (chunks->size() > 0)
-		for (auto i = 0; i < chunks->size(); i++)
+		for (auto it = chunks->begin(); it != chunks->end(); ++it)
 		{
-			//printf("%d\n", chunks->size());
-			shader.setMat4("model", chunks->at(i)->mat);
-			glBindVertexArray(chunks->at(i)->VAO);
-			glDrawArrays(GL_TRIANGLES, 0, chunks->at(i)->size);
-		}
+			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second.Position.x + 8)), 2) + pow((camera.Position.z - (it->second.Position.z + 8)), 2));
+			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 2)
+			{
 
-	//printf("%f\n", -VIEW_DISTANCE + ceil((int)camera.Position.x / 16));
-	for (int x = (-VIEW_DISTANCE / 2) + ceil((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
+				//it->second.freeBuffer();
+				//chunks->erase(it);
+				vec.emplace_back(it->first);
+				printf("Erased\n");
+				//continue;
+			}
+			//else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE)
+			//{
+			//	continue;
+			//}
+			else
+			{
+
+				shader.setMat4("model", it->second.mat);
+				glBindVertexArray(it->second.VAO);
+				glDrawArrays(GL_TRIANGLES, 0, it->second.size);
+			}
+		}
+	for (auto &&key : vec)
 	{
-		for (int z = (-VIEW_DISTANCE / 2) + ceil((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
+		//chunks->find(key)->second.freeBuffer();
+		chunks->erase(key);
+	}
+
+	for (int x = (-VIEW_DISTANCE) + ceil((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
+	{
+		for (int z = (-VIEW_DISTANCE) + ceil((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
-			int find = 0;
-			if (chunks->size() == 0)
-			{
-				createExpendedChunkX(vox, chunks, (float)x, (float)z, o);
-				continue;
-			}
-			for (auto i = 0; i < chunks->size(); i++)
-			{
-				shader.setMat4("model", chunks->at(i)->mat);
-				glBindVertexArray(chunks->at(i)->VAO);
-				glDrawArrays(GL_TRIANGLES, 0, chunks->at(i)->size);
-				if (round(chunks->at(i)->Position.x) == round(x * CHUNK_SIZE_X) && round(chunks->at(i)->Position.z) == round(z * CHUNK_SIZE_Z))
-				{
-					find = 1;
-					break;
-				}
-			}
-			if (!find)
-				createExpendedChunkX(vox, chunks, x, z, o);
+
+			createExpendedChunkX(vox, chunks, x, z, o);
 			o++;
 		}
 	}
