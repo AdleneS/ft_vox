@@ -257,7 +257,6 @@ void displayChunk(Shader shader, t_vox *vox, std::vector<Chunk *> *chunks)
 				shader.setMat4("model", chunks->at(i)->mat);
 				glBindVertexArray(chunks->at(i)->VAO);
 				glDrawArrays(GL_TRIANGLES, 0, chunks->at(i)->size);
-				//printf("%f %f\n", round(chunks->at(i)->Position.x), round(x * CHUNK_SIZE_X));
 				if (round(chunks->at(i)->Position.x) == round(x * CHUNK_SIZE_X) && round(chunks->at(i)->Position.z) == round(z * CHUNK_SIZE_Z))
 				{
 					find = 1;
