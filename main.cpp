@@ -82,7 +82,6 @@ int main(void)
 	glfwSetScrollCallback(window, scroll_callback);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//glEnable(GL_DEPTH_TEST);
 
 	Shader shader("C:/Users/wks/Desktop/ft_vox/vertex.glsl", "C:/Users/wks/Desktop/ft_vox/fragment.glsl");
 	glfwMakeContextCurrent(window);
@@ -229,8 +228,8 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 void displayChunk(Shader shader, t_vox *vox, std::vector<Chunk *> *chunks)
 {
-	int new_view_distance_x = VIEW_DISTANCE + ceil((int)camera.Position.x / 16);
-	int new_view_distance_z = VIEW_DISTANCE + ceil((int)camera.Position.z / 16);
+	int new_view_distance_x = (VIEW_DISTANCE / 2) + ceil((int)camera.Position.x / CHUNK_SIZE_X);
+	int new_view_distance_z = (VIEW_DISTANCE / 2) + ceil((int)camera.Position.z / CHUNK_SIZE_Z);
 	size_t o = 0;
 
 	if (chunks->size() > 0)
@@ -242,9 +241,10 @@ void displayChunk(Shader shader, t_vox *vox, std::vector<Chunk *> *chunks)
 			glDrawArrays(GL_TRIANGLES, 0, chunks->at(i)->size);
 		}
 
-	for (size_t x = ceil((int)camera.Position.x / 16); x < new_view_distance_x; x++)
+	//printf("%f\n", -VIEW_DISTANCE + ceil((int)camera.Position.x / 16));
+	for (int x = (-VIEW_DISTANCE / 2) + ceil((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 	{
-		for (size_t z = ceil((int)camera.Position.z / 16); z < new_view_distance_z; z++)
+		for (int z = (-VIEW_DISTANCE / 2) + ceil((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
 			int find = 0;
 			if (chunks->size() == 0)
@@ -254,6 +254,9 @@ void displayChunk(Shader shader, t_vox *vox, std::vector<Chunk *> *chunks)
 			}
 			for (auto i = 0; i < chunks->size(); i++)
 			{
+				shader.setMat4("model", chunks->at(i)->mat);
+				glBindVertexArray(chunks->at(i)->VAO);
+				glDrawArrays(GL_TRIANGLES, 0, chunks->at(i)->size);
 				//printf("%f %f\n", round(chunks->at(i)->Position.x), round(x * CHUNK_SIZE_X));
 				if (round(chunks->at(i)->Position.x) == round(x * CHUNK_SIZE_X) && round(chunks->at(i)->Position.z) == round(z * CHUNK_SIZE_Z))
 				{
