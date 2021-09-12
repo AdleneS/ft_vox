@@ -5,7 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.hpp"
 
-typedef std::pair<vec3, Chunk> PosChunk;
+typedef std::pair<vec3, Chunk *> PosChunk;
 Camera camera(glm::vec3(0.0f, 256.0f, 0.0f));
 
 float lastX = SCR_WIDTH / 2.0f;
@@ -40,15 +40,15 @@ t_vox *init()
 	return vox;
 }
 
-void createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk, MyHashFunction> *chunks, int x, int z, int o)
+void createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int x, int z, int o)
 {
 	if (chunks->find(vec3(x, 0, z)) == chunks->end())
 	{
-		chunks->emplace(PosChunk(vec3(x, 0, z), createCube(vox, o, vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed)));
-		chunks->at(vec3(x, 0, z)).loadVBO();
-		chunks->at(vec3(x, (float)0, z)).Vertices.clear();
-		chunks->at(vec3(x, (float)0, z)).Vertices.shrink_to_fit();
-		chunks->at(vec3(x, (float)0, z)).freeCubeData();
+		chunks->emplace(PosChunk(vec3(x, 0, z), new Chunk(createCube(vox, o, vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed))));
+		chunks->at(vec3(x, 0, z))->loadVBO();
+		chunks->at(vec3(x, (float)0, z))->Vertices.clear();
+		chunks->at(vec3(x, (float)0, z))->Vertices.shrink_to_fit();
+		chunks->at(vec3(x, (float)0, z))->freeCubeData();
 		vox->chunkCount++;
 		vox->chunkNbX++;
 	}
@@ -59,7 +59,7 @@ int main(void)
 
 	GLFWwindow *window;
 	//std::vector<Chunk *> chunks;
-	std::unordered_map<vec3, Chunk, MyHashFunction> chunks;
+	std::unordered_map<vec3, Chunk *, MyHashFunction> chunks;
 	t_vox *vox = init();
 
 	glfwSetErrorCallback(error_callback);
@@ -145,9 +145,9 @@ void createMesh(Chunk *chunk)
 						tex = glm::vec2(2, 0);
 					else
 						tex = glm::vec2(0, 0);
-					if (y < CHUNK_SIZE_Y - 10)
+					if (y < CHUNK_SIZE_Y / 2)
 						tex = glm::vec2(0, 1);
-					else if (y < CHUNK_SIZE_Y - 7)
+					else if (y < CHUNK_SIZE_Y / 2 + 3)
 						tex = glm::vec2(1, 1);
 
 					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData))
@@ -185,7 +185,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 		{
 			float n = 0.5;
 			float a = 0.55;
-			float freq = 0.0016;
+			float freq = 0.0006;
 			int isEmpty = false;
 			double value = 0;
 			for (int octave = 0; octave < 8; octave++)
@@ -201,8 +201,8 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			n *= CHUNK_SIZE_Y - 1;
 			if (n >= CHUNK_SIZE_Y - 1)
 				n = CHUNK_SIZE_Y - 1;
-			if (n <= CHUNK_SIZE_Y - 10)
-				n = CHUNK_SIZE_Y - 11;
+			if (n <= CHUNK_SIZE_Y / 2)
+				n = CHUNK_SIZE_Y / 2 - 1;
 
 			//n = round(n);
 			//if ((int)n % 2 != 0)
@@ -224,7 +224,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	return chunk;
 }
 
-void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk, MyHashFunction> *chunks)
+void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks)
 {
 	int new_view_distance_x = (VIEW_DISTANCE) + ceil((int)camera.Position.x / CHUNK_SIZE_X);
 	int new_view_distance_z = (VIEW_DISTANCE) + ceil((int)camera.Position.z / CHUNK_SIZE_Z);
@@ -233,15 +233,13 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk, MyH
 	if (chunks->size() > 0)
 		for (auto it = chunks->begin(); it != chunks->end(); ++it)
 		{
-			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second.Position.x + 8)), 2) + pow((camera.Position.z - (it->second.Position.z + 8)), 2));
+			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
 			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 2)
 			{
 
-				//it->second.freeBuffer();
-				//chunks->erase(it);
 				vec.emplace_back(it->first);
 				printf("Erased\n");
-				//continue;
+				continue;
 			}
 			//else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE)
 			//{
@@ -250,14 +248,14 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk, MyH
 			else
 			{
 
-				shader.setMat4("model", it->second.mat);
-				glBindVertexArray(it->second.VAO);
-				glDrawArrays(GL_TRIANGLES, 0, it->second.size);
+				shader.setMat4("model", it->second->mat);
+				glBindVertexArray(it->second->VAO);
+				glDrawArrays(GL_TRIANGLES, 0, it->second->size);
 			}
 		}
 	for (auto &&key : vec)
 	{
-		//chunks->find(key)->second.freeBuffer();
+		delete (chunks->find(key)->second);
 		chunks->erase(key);
 	}
 
