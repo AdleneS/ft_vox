@@ -44,11 +44,11 @@ void createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFu
 {
 	if (chunks->find(vec3(x, 0, z)) == chunks->end())
 	{
-		chunks->emplace(PosChunk(vec3(x, 0, z), new Chunk(createCube(vox, o, vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed))));
+		chunks->emplace(PosChunk(vec3(x, 0, z), new Chunk(createCube(vox, o, vec3(x * (int)CHUNK_SIZE_X, 0, z * (int)CHUNK_SIZE_Z), vox->seed))));
 		chunks->at(vec3(x, 0, z))->loadVBO();
 		chunks->at(vec3(x, (float)0, z))->Vertices.clear();
 		chunks->at(vec3(x, (float)0, z))->Vertices.shrink_to_fit();
-		chunks->at(vec3(x, (float)0, z))->freeCubeData();
+		//chunks->at(vec3(x, (float)0, z))->freeCubeData();
 		vox->chunkCount++;
 		vox->chunkNbX++;
 	}
@@ -118,7 +118,6 @@ int main(void)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	//free(vox->chunk);
 	glfwDestroyWindow(window);
 
 	glfwTerminate();
@@ -178,7 +177,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	int id = 0;
 
 	Chunk chunk(offsets, chunkId);
-
+	seed *= 2000;
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
 	{
 		for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
@@ -221,30 +220,29 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	}
 
 	createMesh(&chunk);
+	chunk.freeCubeData();
 	return chunk;
 }
 
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks)
 {
-	int new_view_distance_x = (VIEW_DISTANCE) + ceil((int)camera.Position.x / CHUNK_SIZE_X);
-	int new_view_distance_z = (VIEW_DISTANCE) + ceil((int)camera.Position.z / CHUNK_SIZE_Z);
+	int new_view_distance_x = (VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X);
+	int new_view_distance_z = (VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z);
 	size_t o = 0;
 	std::vector<vec3> vec;
 	if (chunks->size() > 0)
 		for (auto it = chunks->begin(); it != chunks->end(); ++it)
 		{
 			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
-			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 2)
+			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 1.4)
 			{
-
 				vec.emplace_back(it->first);
-				printf("Erased\n");
 				continue;
 			}
-			//else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE)
-			//{
-			//	continue;
-			//}
+			else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE)
+			{
+				continue;
+			}
 			else
 			{
 
@@ -259,9 +257,9 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 		chunks->erase(key);
 	}
 
-	for (int x = (-VIEW_DISTANCE) + ceil((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
+	for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 	{
-		for (int z = (-VIEW_DISTANCE) + ceil((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
+		for (int z = (-VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
 
 			createExpendedChunkX(vox, chunks, x, z, o);
@@ -290,6 +288,10 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		camera.MovementSpeed = 20;
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE)
+		camera.MovementSpeed = 10;
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+		camera.MovementSpeed = 50;
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
 		camera.MovementSpeed = 10;
 }
 
