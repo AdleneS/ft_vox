@@ -218,7 +218,27 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
 		}
 	}
-
+	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
+	{
+		for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
+		{
+			for (size_t y = 0; y < CHUNK_SIZE_Y; y++)
+			{
+				if (chunk.CubeData[x][y][z].isEmpty == true)
+				{
+					chunk.CubeData[x][y][z].Position = glm::vec3((x), (y), (z));
+					chunk.CubeData[x][y][z].Id = id;
+					chunk.CubeData[x][y][z].isEmpty = false;
+					chunk.CubeData[x][y][z].value = y;
+				}
+				else
+				{
+					goto cnt;
+				}
+			}
+		cnt:;
+		}
+	}
 	createMesh(&chunk);
 	chunk.freeCubeData();
 	return chunk;
@@ -234,28 +254,28 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 		for (auto it = chunks->begin(); it != chunks->end(); ++it)
 		{
 			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
-			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 1.4)
+			if (distanceFromChunk > 256)
 			{
 				vec.emplace_back(it->first);
 				continue;
 			}
-			else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE)
+			else if (distanceFromChunk > VIEW_DISTANCE * CHUNK_SIZE_X)
 			{
 				continue;
 			}
 			else
 			{
-
 				shader.setMat4("model", it->second->mat);
 				glBindVertexArray(it->second->VAO);
 				glDrawArrays(GL_TRIANGLES, 0, it->second->size);
 			}
 		}
-	for (auto &&key : vec)
-	{
-		delete (chunks->find(key)->second);
-		chunks->erase(key);
-	}
+	if (vec.size())
+		for (auto &&key : vec)
+		{
+			delete (chunks->find(key)->second);
+			chunks->erase(key);
+		}
 
 	for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 	{

@@ -5,7 +5,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "cube.hpp"
-
 class Chunk
 {
 public:
@@ -13,8 +12,8 @@ public:
 	glm::vec3 Position;
 	glm::mat4x4 mat;
 	Cube ***CubeData;
-	std::vector<float> Vertices;
-	std::vector<float> UV;
+	std::vector<short> Vertices;
+	std::vector<short> UV;
 	std::vector<glm::vec2> texCoord;
 	int size;
 	int sizeUV;
@@ -95,15 +94,15 @@ public:
 		glGenBuffers(1, &TOB);
 
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), &Vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, size * sizeof(short), &Vertices[0], GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+		glVertexAttribPointer(0, 3, GL_SHORT, GL_FALSE, 3 * sizeof(short), (void *)0);
 		glEnableVertexAttribArray(0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, UVB);
-		glBufferData(GL_ARRAY_BUFFER, sizeUV * sizeof(float), &UV[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeUV * sizeof(short), &UV[0], GL_STATIC_DRAW);
 
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
+		glVertexAttribPointer(1, 2, GL_SHORT, GL_FALSE, 2 * sizeof(short), (void *)0);
 		glEnableVertexAttribArray(1);
 
 		glBindBuffer(GL_ARRAY_BUFFER, TOB);
@@ -124,8 +123,8 @@ Chunk::~Chunk()
 	glDeleteBuffers(1, &TOB);
 	Vertices.clear();
 	Vertices.shrink_to_fit();
-	UV.clear();
-	UV.shrink_to_fit();
+	//UV.clear();
+	//UV.shrink_to_fit();
 	texCoord.clear();
 	texCoord.shrink_to_fit();
 }
