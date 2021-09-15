@@ -8,9 +8,9 @@ INC_DIR = ./include
 INC_HDR =	-I./ -I./glfw/include -I./gl3w/include/GL
 INC_LIB =	-L./glfw/src -lglfw3 \
 			-framework OpenGL -framework AppKit -framework Cocoa -framework IOKit -framework CoreVideo
-INC_H	= shader.hpp cube.hpp camera.hpp
+INC_H	= vox.hpp shader.hpp cube.hpp camera.hpp
 
-CFLAGS	:= -Wall -Wextra -O3 -I$(INC_DIR)
+CFLAGS	:= -std=c++11 -stdlib=libc++ -Wall -Wextra -O3 -I$(INC_DIR)
 OBJS	:= $(patsubst %.cpp,$(OBJ_DIR)/%.o,  $(SRCS))
 
 all: CREATE_OBJDIR $(NAME)

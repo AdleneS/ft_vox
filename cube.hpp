@@ -3,80 +3,149 @@
 
 #include "gl3w/include/GL/gl3w.h"
 #include "glm/glm.hpp"
-
+#include "glm/gtc/matrix_transform.hpp"
 #include <vector>
+#include "cube.hpp"
 
+static glm::vec3 vert[] = {
+	glm::vec3(1, 1, 1),
+	glm::vec3(-1, 1, 1),
+	glm::vec3(-1, -1, 1),
+	glm::vec3(1, -1, 1),
+	glm::vec3(-1, 1, -1),
+	glm::vec3(1, 1, -1),
+	glm::vec3(1, -1, -1),
+	glm::vec3(-1, -1, -1)};
 
-// Default camera values
-float VERTICES[] = {
-			//NORTH
-			-1.0f, -1.0f, -1.0f, 1.0f, 0.0f,
-			 1.0f, -1.0f, -1.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, -1.0f, 0.0f, 1.0f,
-			 1.0f,  1.0f, -1.0f, 0.0f, 1.0f,
-			-1.0f,  1.0f, -1.0f, 1.0f, 1.0f,
-			-1.0f, -1.0f, -1.0f, 1.0f, 0.0f,
-			//SOUTH
-			-1.0f, -1.0f,  1.0f, 0.0f, 0.0f,
-			 1.0f, -1.0f,  1.0f, 1.0f, 0.0f,
-			 1.0f,  1.0f,  1.0f, 1.0f, 1.0f,
-			 1.0f,  1.0f,  1.0f, 1.0f, 1.0f,
-			-1.0f,  1.0f,  1.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f,  1.0f, 0.0f, 0.0f,
-			//WEST
-			-1.0f,  1.0f,  1.0f, 0.0f, 0.0f,
-			-1.0f,  1.0f, -1.0f, -1.0f, 0.0f,
-			-1.0f, -1.0f, -1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f, -1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f, 0.0f, -1.0f,
-			-1.0f,  1.0f,  1.0f, 0.0f, 0.0f,
-			//EAST
-			 1.0f,  1.0f,  1.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, -1.0f, -1.0f, -0.0f,
-			 1.0f, -1.0f, -1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f,  1.0f, 0.0f, -1.0f,
-			 1.0f,  1.0f,  1.0f, 0.0f, 0.0f,
-			//BOT
-			-1.0f, -1.0f, -1.0f, 0.0f, 0.0f,
-			 1.0f, -1.0f, -1.0f, 1.0f, 0.0f,
-			 1.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-			 1.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-			-1.0f, -1.0f,  1.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, -1.0f, 0.0f, 0.0f,
-			//TOP
-			-1.0f,  1.0f, -1.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, -1.0f, 1.0f, 0.0f,
-			 1.0f,  1.0f,  1.0f, 1.0f, 1.0f,
-			 1.0f,  1.0f,  1.0f, 1.0f, 1.0f,
-			-1.0f,  1.0f,  1.0f, 0.0f, 1.0f,
-			-1.0f,  1.0f, -1.0f, 0.0f, 0.0f
+static int faceTriangles[][4] = {
+	{0, 1, 2, 3},
+	{5, 0, 3, 6},
+	{4, 5, 6, 7},
+	{1, 4, 7, 2},
+	{5, 4, 1, 0},
+	{3, 2, 7, 6},
 };
 
+std::vector<glm::vec3> faceVertices(std::vector<glm::vec3> v, int dir)
+{
+	std::vector<glm::vec3> fv;
+	fv = v;
+	for (size_t i = 0; i < 4; i++)
+	{
+		fv.push_back(vert[faceTriangles[dir][i]]);
+	}
+	return fv;
+}
+
+static float VERTICES[] = {
+	//NORTH
+	0.0f, 0.0f, 1.0f,
+	1.0f, 0.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	0.0f, 1.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	//EAST
+	1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	//SOUTH
+	0.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f,
+	//WEST
+	0.0f, 1.0f, 1.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 1.0f, 1.0f,
+	//TOP
+	0.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	0.0f, 1.0f, 1.0f,
+	0.0f, 1.0f, 0.0f,
+	//BOT
+	0.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 1.0f,
+	1.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 0.0f};
+
+static float UV[] =
+	{
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+
+		0.0f, 0.0f,
+		-1.0f, 0.0f,
+		-1.0f, -1.0f,
+		-1.0f, -1.0f,
+		0.0f, -1.0f,
+		0.0f, 0.0f,
+
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+
+		0.0f, 0.0f,
+		-1.0f, -0.0f,
+		-1.0f, -1.0f,
+		-1.0f, -1.0f,
+		0.0f, -1.0f,
+		0.0f, 0.0f,
+
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f};
+
+static int SIZEV = 432;
+static int SIZEUV = 288;
 class Cube
 {
 public:
-   
-	glm::vec3	Position;
-	float       *Vertices;
-	int         size;
-	glm::mat4	model;
+	int Id;
+	glm::vec3 Position;
+	bool isEmpty;
+	glm::vec2 texCoord;
+	float value;
 
-	Cube(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), float *vertices = VERTICES)
+	Cube(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), bool isempty = false, int id = -1, glm::vec2 texcoord = glm::vec2(0, 0))
 	{
+		Id = id;
 		Position = position;
-		Vertices = vertices;
-		size = sizeof(VERTICES);
+		isEmpty = isempty;
+		texCoord = texcoord;
+		value = 0;
 	}
-	Cube(float posX, float posY, float posZ)
-	{
-		Position = glm::vec3(posX, posY, posZ);
-	}
-	void translate(glm::vec3 v)
-	{
-		model = glm::translate(model, v);
-		//std::cout << v.x << " " << v.y << " " << v.z <<" \n"; 
-	}
+
 private:
 };
+
 #endif
