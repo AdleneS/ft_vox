@@ -250,7 +250,7 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 		for (auto it = chunks->begin(); it != chunks->end(); ++it)
 		{
 			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
-			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 2)
+			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 1.4)
 			{
 				vec.emplace_back(it->first);
 				continue;

@@ -107,10 +107,10 @@ private:
 
 Chunk::~Chunk()
 {
-	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &UVB);
 	glDeleteBuffers(1, &TOB);
+	glDeleteVertexArrays(1, &VAO);
 	Vertices.clear();
 	Vertices.shrink_to_fit();
 	UV.clear();
