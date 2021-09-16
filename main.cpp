@@ -42,6 +42,19 @@ t_vox *init()
 	return vox;
 }
 
+void fps(GLFWwindow *window)
+{
+	static double current_time = 0;
+  	static double last_time = 0;
+	char buffer[5];
+	char title[] = "VOX | ";
+  	last_time = current_time;
+  	current_time = glfwGetTime();
+  	double fps = 1.0 / (current_time - last_time);
+	snprintf(buffer, sizeof buffer, "%f", fps);
+	glfwSetWindowTitle(window, std::strcat(title, buffer));
+}
+
 void createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int x, int z, int o)
 {
 	if (chunks->find(vec3(x, 0, z)) == chunks->end())
@@ -54,6 +67,7 @@ void createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFu
 		vox->chunkNbX++;
 	}
 }
+
 
 int main(void)
 {
@@ -98,6 +112,7 @@ int main(void)
 	//createChunk(vox);
 	while (!glfwWindowShouldClose(window))
 	{
+		fps(window);
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -116,6 +131,8 @@ int main(void)
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+
 	}
 	glfwDestroyWindow(window);
 
@@ -133,7 +150,7 @@ void createMesh(Chunk *chunk)
 		{
 			for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 			{
-				if (chunk->CubeData[x][y][z].isEmpty || chunk->CubeData[x][y][z].Id < 0)
+				if (chunk->CubeData[x][y][z].isEmpty)
 					continue;
 				for (int i = 0; i < 6; i++)
 				{
@@ -143,9 +160,9 @@ void createMesh(Chunk *chunk)
 						tex = glm::vec2(2, 0);
 					else
 						tex = glm::vec2(0, 0);
-					if (y < CHUNK_SIZE_Y / 2)
+					if (y < CHUNK_SIZE_Y / 3)
 						tex = glm::vec2(0, 1);
-					else if (y < CHUNK_SIZE_Y / 2 + 3)
+					else if (y < CHUNK_SIZE_Y / 3 + 2)
 						tex = glm::vec2(1, 1);
 
 					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData))
@@ -180,12 +197,12 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 		for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 		{
 			float n = 0.5;
-			float a = 0.55;
-			float freq = 0.0006;
+			float a = 0.3;
+			float freq = 0.0032;
 			float value = 0;
 			for (int octave = 0; octave < 8; octave++)
 			{
-				value = a * glm::simplex(glm::vec2((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq));
+				value = a * Get2DPerlinNoiseValue((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);//glm::simplex(glm::vec2((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq));
 				n += value;
 				a *= 0.5;
 				freq *= 2.0;
@@ -193,11 +210,11 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 			n = (n + 1) / 2;
 
-			n *= CHUNK_SIZE_Y - 1;
+			n *= CHUNK_SIZE_Y / 2 ;
 			if (n >= CHUNK_SIZE_Y - 1)
 				n = CHUNK_SIZE_Y - 1;
-			if (n <= CHUNK_SIZE_Y / 2)
-				n = CHUNK_SIZE_Y / 2 - 1;
+			if (n <= CHUNK_SIZE_Y / 3)
+				n = CHUNK_SIZE_Y / 3 - 1;
 
 			//n = round(n);
 			//if ((int)n % 2 != 0)
@@ -206,35 +223,42 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			//	isEmpty = true;
 			//printf("%f || ", value);
 			//printf("%f || ", value);
+
 			chunk.CubeData[x][(int)n][z].Position = glm::vec3((x), (int)(n), (z));
 			chunk.CubeData[x][(int)n][z].Id = id;
 			chunk.CubeData[x][(int)n][z].isEmpty = false;
 			chunk.CubeData[x][(int)n][z].value = n;
 
 			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
+
+			for (int y = 50 ; y < (int)n; y++)
+			{
+				float nn = 0.5;
+				float a = 0.3;
+				float freq = 0.0032;
+				float value = 0;
+				for (int octave = 0; octave < 8; octave++)
+				{
+					value = a * glm::simplex(glm::vec3((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq));
+					n += value;
+					a *= 0.5;
+					freq *= 2.0;
+				}
+
+				nn = (nn + 1) / 2;
+				nn *= n;
+				//printf("%f\n", nn);
+				if (nn < n-10)
+					if (nn > 65)
+					{
+					chunk.CubeData[x][(y)][z].Position = glm::vec3((x), (y), (z));
+					chunk.CubeData[x][(y)][z].Id = id;
+					chunk.CubeData[x][(y)][z].isEmpty = false;
+					chunk.CubeData[x][(y)][z].value = y;
+					}
+			}
 		}
 	}
-	/*for (size_t x = 0; x < CHUNK_SIZE_X; x++)
-	{
-		for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
-		{
-			for (size_t y = 0; y < CHUNK_SIZE_Y; y++)
-			{
-				if (chunk.CubeData[x][y][z].isEmpty == true)
-				{
-					chunk.CubeData[x][y][z].Position = glm::vec3((x), (y), (z));
-					chunk.CubeData[x][y][z].Id = id;
-					chunk.CubeData[x][y][z].isEmpty = false;
-					chunk.CubeData[x][y][z].value = y;
-				}
-				else
-				{
-					goto cnt;
-				}
-			}
-		cnt:;
-		}
-	}*/
 	createMesh(&chunk);
 	chunk.freeCubeData();
 	return chunk;
@@ -247,10 +271,11 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 	size_t o = 0;
 	std::vector<vec3> vec;
 	if (chunks->size() > 0)
+	{
 		for (auto it = chunks->begin(); it != chunks->end(); ++it)
 		{
 			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
-			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 1.4)
+			if (distanceFromChunk > VIEW_DISTANCE * CHUNK_SIZE_X * CHUNK_SIZE_Z * 1.1)
 			{
 				vec.emplace_back(it->first);
 				continue;
@@ -263,21 +288,20 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 			{
 				shader.setMat4("model", it->second->mat);
 				glBindVertexArray(it->second->VAO);
-				glDrawArrays(GL_TRIANGLES, 0, it->second->size);
+				glDrawArrays(GL_TRIANGLES, 0, it->second->size / 3);
 			}
 		}
-	if (vec.size())
 		for (auto &&key : vec)
 		{
 			delete (chunks->find(key)->second);
 			chunks->erase(key);
 		}
+	}
 
 	for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 	{
 		for (int z = (-VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
-
 			createExpendedChunkX(vox, chunks, x, z, o);
 			o++;
 		}
