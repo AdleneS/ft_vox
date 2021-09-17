@@ -3,11 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <map>
 #include <unordered_map>
+#include <string>
+#include <time.h>
 
-//#define GLFW_DLL
-//#include <GL/glew.h>
 #include "gl3w/include/GL/gl3w.h"
 #include "gl3w/src/gl3w.c"
 
@@ -17,7 +16,7 @@ const unsigned int SCR_HEIGHT = 1080;
 const float CHUNK_SIZE_X = 16;
 const float CHUNK_SIZE_Y = 256;
 const float CHUNK_SIZE_Z = 16;
-const float VIEW_DISTANCE = 4;
+const float VIEW_DISTANCE = 16;
 
 #include "shader.hpp"
 #include "camera.hpp"
@@ -42,6 +41,8 @@ typedef struct s_vox
     unsigned int chunkNbZ;
     unsigned int chunkCount;
 
+    float fps;
+
     int seed;
 
 } t_vox;
@@ -55,6 +56,8 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks);
 void createChunk(t_vox *vox);
 void createMesh(Chunk *chunk);
+
+float Get2DPerlinNoiseValue(float x, float y, float res);
 
 t_vox *init();
 
