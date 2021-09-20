@@ -16,7 +16,7 @@ const unsigned int SCR_HEIGHT = 1080;
 const float CHUNK_SIZE_X = 16;
 const float CHUNK_SIZE_Y = 256;
 const float CHUNK_SIZE_Z = 16;
-const float VIEW_DISTANCE = 16;
+const float VIEW_DISTANCE = 4;
 
 #include "shader.hpp"
 #include "camera.hpp"
@@ -24,6 +24,7 @@ const float VIEW_DISTANCE = 16;
 #include "chunk.hpp"
 #include "mesh.hpp"
 #include "vector3.hpp"
+#include "frustum.hpp"
 
 #include "glfw/include/GLFW/glfw3.h"
 #include "glm/glm.hpp"
@@ -53,7 +54,7 @@ void processInput(GLFWwindow *window);
 GLuint load_texture(const char *imagePath);
 
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
-void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks);
+void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum);
 void createChunk(t_vox *vox);
 void createMesh(Chunk *chunk);
 

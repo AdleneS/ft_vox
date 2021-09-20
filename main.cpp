@@ -5,7 +5,7 @@
 #include "stb_image.hpp"
 
 typedef std::pair<vec3, Chunk *> PosChunk;
-Camera camera(glm::vec3(0.0f, 256.0f, 0.0f));
+Camera camera(glm::vec3(0.0f, 128.0f, 0.0f));
 
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -106,11 +106,12 @@ int main(void)
 	glfwSetKeyCallback(window, key_callback);
 
 	shader.use();
-	load_texture("C:/Users/wks/Desktop/ft_vox/resources/textures/textures2.jpg");
+	load_texture("C:/Users/wks/Desktop/ft_vox/resources/textures/textures.jpg");
 	shader.setInt("texture", 0);
 	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
+		Frustum frustum;
 		fps(window);
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -122,11 +123,12 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-		displayChunk(shader, vox, &chunks);
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 		shader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
+		frustum.Transform(projection, view);
+		displayChunk(shader, vox, &chunks, frustum);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -160,6 +162,8 @@ void createMesh(Chunk *chunk)
 						tex = glm::vec2(0, 1);
 					else if (y < CHUNK_SIZE_Y / 3 + 2)
 						tex = glm::vec2(1, 1);
+					if (y < CHUNK_SIZE_Y / 3 - 3)
+						tex = glm::vec2(0, 2);
 
 					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData))
 					{
@@ -198,7 +202,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			float value = 0;
 			for (int octave = 0; octave < 8; octave++)
 			{
-				value = a * Get2DPerlinNoiseValue((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1); //glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq)); //
+				value = a * glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq)); // Get2DPerlinNoiseValue((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
 				n += value;
 				a *= 0.5;
 				freq *= 2.0;
@@ -227,22 +231,37 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
 
-			/*for (int y = 80; y < (int)n; y++)
+			for (int y = 50; y < (int)n; y++)
 			{
+				float nn = 0.5;
+				a = 0.7;
+				freq = 0.0632;
+				value = 0;
+				for (int octave = 0; octave < 2; octave++)
+				{
+					value = a * glm::simplex(glm::vec3((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq)); //glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq))
+					nn += value;
+					a *= 0.5;
+					freq *= 2.0;
+				}
 
-				value = a * glm::simplex(glm::vec3((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq));
-
-				value = (value + 1) / 2;
-				//printf("%f\n", value);
+				nn = (nn + 1) / 2;
 				//if (value < n - 10)
-				if (value > 0.5)
+				if (nn > 0.8)
 				{
 					chunk.CubeData[x][(y)][z].Position = glm::vec3((x), (y), (z));
 					chunk.CubeData[x][(y)][z].Id = id;
 					chunk.CubeData[x][(y)][z].isEmpty = false;
 					chunk.CubeData[x][(y)][z].value = y;
 				}
-			}*/
+				if (y == 50)
+				{
+					chunk.CubeData[x][(y)][z].Position = glm::vec3((x), (y), (z));
+					chunk.CubeData[x][(y)][z].Id = id;
+					chunk.CubeData[x][(y)][z].isEmpty = false;
+					chunk.CubeData[x][(y)][z].value = y;
+				}
+			}
 		}
 	}
 	createMesh(&chunk);
@@ -250,12 +269,13 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	return chunk;
 }
 
-void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks)
+void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum)
 {
 	int new_view_distance_x = (VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X);
 	int new_view_distance_z = (VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z);
 	size_t o = 0;
 	std::vector<vec3> vec;
+	int triNb = 0;
 	if (chunks->size() > 0)
 	{
 		glfwPollEvents();
@@ -263,27 +283,31 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 		for (auto it = chunks->begin(); it != chunks->end(); ++it)
 		{
 			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
-			if (distanceFromChunk > VIEW_DISTANCE * CHUNK_SIZE_X * 1.4)
-			{
-				vec.emplace_back(it->first);
-				continue;
-			}
-			else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE)
-			{
-				continue;
-			}
-			else
-			{
-				shader.setMat4("model", it->second->mat);
-				glBindVertexArray(it->second->VAO);
-				glDrawArrays(GL_TRIANGLES, 0, it->second->size / 3);
-			}
+
+			//if (distanceFromChunk > VIEW_DISTANCE * CHUNK_SIZE_X * 1.4)
+			//{
+			//	vec.emplace_back(it->first);
+			//	continue;
+			//}
+			//else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE || frustum.IsInside(it->second->Position) == Frustum::Invisible)
+			//{
+			//	continue;
+			//}
+			//else //if (frustum.IsInside(it->second->Position) == 2)
+			//{
+			shader.setMat4("model", it->second->mat);
+			glBindVertexArray(it->second->VAO);
+			glDrawArrays(GL_TRIANGLES, 0, it->second->size / 3);
+			//printf("%f %f %f\n", it->second->Position.x, it->second->Position.y, it->second->Position.z);
+			triNb += it->second->size / 3;
+			//}
 		}
 		for (auto &&key : vec)
 		{
 			delete (chunks->find(key)->second);
 			chunks->erase(key);
 		}
+		//printf("%d\n", triNb);
 	}
 
 	for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
