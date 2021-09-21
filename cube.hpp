@@ -5,7 +5,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
-#include "cube.hpp"
 
 static glm::vec3 vert[] = {
 	glm::vec3(1, 1, 1),
@@ -26,7 +25,7 @@ static int faceTriangles[][4] = {
 	{3, 2, 7, 6},
 };
 
-std::vector<glm::vec3> faceVertices(std::vector<glm::vec3> v, int dir)
+inline std::vector<glm::vec3> faceVertices(std::vector<glm::vec3> v, int dir)
 {
 	std::vector<glm::vec3> fv;
 	fv = v;

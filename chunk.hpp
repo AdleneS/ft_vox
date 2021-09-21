@@ -21,7 +21,7 @@ public:
 	GLuint UVB;
 	GLuint TOB;
 
-	Chunk(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), int id = -1)
+	inline Chunk(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), int id = -1)
 	{
 		Id = id;
 		mat = glm::mat4(1.0f);
@@ -105,7 +105,7 @@ public:
 private:
 };
 
-Chunk::~Chunk()
+inline Chunk::~Chunk()
 {
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &UVB);

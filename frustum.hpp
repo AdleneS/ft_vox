@@ -1,6 +1,9 @@
 #pragma once
+#include "const.hpp"
 #include "glm/glm.hpp"
+#include "chunk.hpp"
 
+using namespace glm;
 class Frustum
 {
 public:
@@ -38,7 +41,7 @@ public:
         Invisible
     };
     Visibility IsInside(const glm::vec3 &point) const;
-    // Visibility IsInside(const Box3D &box) const;
+    Visibility IsInside(const Chunk &chunk) const;
 
     //! ACCESSORS:
     glm::dvec4 GetPlane(Plane plane) const;

@@ -1,4 +1,3 @@
-
 #include <filesystem>
 #include "vox.hpp"
 #define STB_IMAGE_IMPLEMENTATION
@@ -131,6 +130,7 @@ int main(void)
 		displayChunk(shader, vox, &chunks, frustum);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		createChunk(vox, &chunks);
 	}
 	glfwDestroyWindow(window);
 
@@ -216,14 +216,6 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			if (n <= CHUNK_SIZE_Y / 3)
 				n = CHUNK_SIZE_Y / 3 - 1;
 
-			//n = round(n);
-			//if ((int)n % 2 != 0)
-			//	n += 1;
-			//if (value >= CHUNK_SIZE_X || value >= CHUNK_SIZE_Y || value >= CHUNK_SIZE_Z)
-			//	isEmpty = true;
-			//printf("%f || ", value);
-			//printf("%f || ", value);
-
 			chunk.CubeData[x][(int)n][z].Position = glm::vec3((x), (int)(n), (z));
 			chunk.CubeData[x][(int)n][z].Id = id;
 			chunk.CubeData[x][(int)n][z].isEmpty = false;
@@ -231,7 +223,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
 
-			for (int y = 50; y < (int)n; y++)
+			/*for (int y = 50; y < (int)n; y++)
 			{
 				float nn = 0.5;
 				a = 0.7;
@@ -261,7 +253,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 					chunk.CubeData[x][(y)][z].isEmpty = false;
 					chunk.CubeData[x][(y)][z].value = y;
 				}
-			}
+			}*/
 		}
 	}
 	createMesh(&chunk);
@@ -271,9 +263,6 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum)
 {
-	int new_view_distance_x = (VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X);
-	int new_view_distance_z = (VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z);
-	size_t o = 0;
 	std::vector<vec3> vec;
 	int triNb = 0;
 	if (chunks->size() > 0)
@@ -284,31 +273,37 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 		{
 			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
 
-			//if (distanceFromChunk > VIEW_DISTANCE * CHUNK_SIZE_X * 1.4)
-			//{
-			//	vec.emplace_back(it->first);
-			//	continue;
-			//}
-			//else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE || frustum.IsInside(it->second->Position) == Frustum::Invisible)
-			//{
-			//	continue;
-			//}
-			//else //if (frustum.IsInside(it->second->Position) == 2)
-			//{
-			shader.setMat4("model", it->second->mat);
-			glBindVertexArray(it->second->VAO);
-			glDrawArrays(GL_TRIANGLES, 0, it->second->size / 3);
-			//printf("%f %f %f\n", it->second->Position.x, it->second->Position.y, it->second->Position.z);
-			triNb += it->second->size / 3;
-			//}
+			if (distanceFromChunk > VIEW_DISTANCE * CHUNK_SIZE_X * 1.4)
+			{
+				vec.emplace_back(it->first);
+				continue;
+			}
+			else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE || frustum.IsInside(*it->second) == Frustum::Invisible)
+			{
+				continue;
+			}
+			else
+			{
+				shader.setMat4("model", it->second->mat);
+				glBindVertexArray(it->second->VAO);
+				glDrawArrays(GL_TRIANGLES, 0, it->second->size / 3);
+				triNb += it->second->size / 3;
+			}
 		}
 		for (auto &&key : vec)
 		{
 			delete (chunks->find(key)->second);
 			chunks->erase(key);
 		}
-		//printf("%d\n", triNb);
+		printf("%d\n", triNb);
 	}
+}
+
+void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks)
+{
+	int new_view_distance_x = (VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X);
+	int new_view_distance_z = (VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z);
+	size_t o = 0;
 
 	for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 	{

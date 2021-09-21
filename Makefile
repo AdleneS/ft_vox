@@ -16,14 +16,14 @@ OBJS	:= $(patsubst %.cpp,$(OBJ_DIR)/%.o,  $(SRCS))
 all: CREATE_OBJDIR $(NAME)
 
 CREATE_OBJDIR:
-		@mkdir -p $(OBJ_DIR)
+		mkdir -p $(OBJ_DIR)
 
 $(NAME): $(OBJS)
-		@g++ ${CFLAGS} ${INC_LIB} $^ -o ${NAME}
-		@printf "\033[1m[ ft_vox ]\033[1m\t\tcompilation complete.\t\033[0m\n"
+		g++ ${CFLAGS} ${INC_LIB} $^ -o ${NAME}
+		printf "\033[1m[ ft_vox ]\033[1m\t\tcompilation complete.\t\033[0m\n"
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(INC_H)
-		@g++ $(CFLAGS) -o $@ -c $<
+		g++ $(CFLAGS) -o $@ -c $<
 
 mk: 
 	@mkdir -p .objs

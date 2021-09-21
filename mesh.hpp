@@ -1,7 +1,6 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "vox.hpp"
 #include "glm/glm.hpp"
 #include <vector>
 #include <iostream>
@@ -25,7 +24,7 @@ struct CubeCoordinate
 
 CubeCoordinate offsets[] =
     {
-       { 0, 0, 1},
+        {0, 0, 1},
         {1, 0, 0},
         {0, 0, -1},
         {-1, 0, 0},
@@ -81,24 +80,7 @@ public:
         if (nCoord.x < 0 || nCoord.x >= CHUNK_SIZE_X || nCoord.y < 0 || nCoord.y >= CHUNK_SIZE_Y || nCoord.z < 0 || nCoord.z >= CHUNK_SIZE_Z)
             return 0;
         else
-        {
-            /*if (cube[nCoord.x][nCoord.y][nCoord.z].value < cube[x][y][z].value)
-            {
-                nCoord.x += cube[x][y][z].value / 2;
-                nCoord.y += cube[x][y][z].value / 2;
-                nCoord.z += cube[x][y][z].value / 2;
-            }
-            else if (cube[nCoord.x][nCoord.y][nCoord.z].value > cube[x][y][z].value)
-            {
-                float value = cube[nCoord.x][nCoord.y][nCoord.z].value;
-                nCoord.x -= value / 2;
-                nCoord.y -= value / 2;
-                nCoord.z -= value / 2;
-            }
-            if (nCoord.x < 0 || nCoord.x >= CHUNK_SIZE_X || nCoord.y < 0 || nCoord.y >= CHUNK_SIZE_Y || nCoord.z < 0 || nCoord.z >= CHUNK_SIZE_Z)
-                return 0;*/
             return getCube(cube[nCoord.x][nCoord.y][nCoord.z], cube[x][y][z], (int)dir);
-        }
     }
 };
 

@@ -97,16 +97,16 @@ Frustum::Visibility Frustum::IsInside(const glm::vec3 &point) const
     return Completly;
 }
 
-/*root::Frustum::Visibility Frustum::IsInside(const Box3D &box) const
+Frustum::Visibility Frustum::IsInside(const Chunk &chunk) const
 {
-    auto GetVisibility = [](const dvec4 &clip, const Box3D &box)
+    auto GetVisibility = [](const vec4 &clip, const Chunk &chunk)
     {
-        double x0 = box.GetMin().x * clip.x;
-        double x1 = box.GetMax().x * clip.x;
-        double y0 = box.GetMin().y * clip.y;
-        double y1 = box.GetMax().y * clip.y;
-        double z0 = box.GetMin().z * clip.z + clip.w;
-        double z1 = box.GetMax().z * clip.z + clip.w;
+        double x0 = chunk.Position.x * clip.x;
+        double x1 = (chunk.Position.x + CHUNK_SIZE_X) * clip.x;
+        double y0 = chunk.Position.y * clip.y;
+        double y1 = (chunk.Position.y + 128) * clip.y;
+        double z0 = chunk.Position.z * clip.z + clip.w;
+        double z1 = (chunk.Position.z + CHUNK_SIZE_Z) * clip.z + clip.w;
         double p1 = x0 + y0 + z0;
         double p2 = x1 + y0 + z0;
         double p3 = x1 + y1 + z0;
@@ -128,31 +128,31 @@ Frustum::Visibility Frustum::IsInside(const glm::vec3 &point) const
         return Partially;
     };
 
-    Visibility v0 = GetVisibility(GetPlane(Right), box);
+    Visibility v0 = GetVisibility(GetPlane(Right), chunk);
     if (v0 == Invisible)
     {
         return Invisible;
     }
 
-    Visibility v1 = GetVisibility(GetPlane(Left), box);
+    Visibility v1 = GetVisibility(GetPlane(Left), chunk);
     if (v1 == Invisible)
     {
         return Invisible;
     }
 
-    Visibility v2 = GetVisibility(GetPlane(Bottom), box);
+    Visibility v2 = GetVisibility(GetPlane(Bottom), chunk);
     if (v2 == Invisible)
     {
         return Invisible;
     }
 
-    Visibility v3 = GetVisibility(GetPlane(Top), box);
+    Visibility v3 = GetVisibility(GetPlane(Top), chunk);
     if (v3 == Invisible)
     {
         return Invisible;
     }
 
-    Visibility v4 = GetVisibility(GetPlane(Front), box);
+    Visibility v4 = GetVisibility(GetPlane(Front), chunk);
     if (v4 == Invisible)
     {
         return Invisible;
@@ -166,4 +166,4 @@ Frustum::Visibility Frustum::IsInside(const glm::vec3 &point) const
     }
 
     return Partially;
-}*/
+}
