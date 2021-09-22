@@ -53,7 +53,7 @@ void fps(GLFWwindow *window)
 	glfwSetWindowTitle(window, std::strcat(title, buffer));
 }
 
-void createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int x, int z, int o)
+int createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int x, int z, int o)
 {
 	if (chunks->find(vec3(x, 0, z)) == chunks->end())
 	{
@@ -63,7 +63,9 @@ void createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFu
 		chunks->at(vec3(x, 0, z))->Vertices.shrink_to_fit();
 		vox->chunkCount++;
 		vox->chunkNbX++;
+		return 1;
 	}
+	return 0;
 }
 
 int main(void)
@@ -127,6 +129,8 @@ int main(void)
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 		frustum.Transform(projection, view);
+		shader.setVec3("lightPos", camera.Position);
+		shader.setVec3("viewPos", camera.Position);
 		displayChunk(shader, vox, &chunks, frustum);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -152,19 +156,11 @@ void createMesh(Chunk *chunk)
 					continue;
 				for (int i = 0; i < 6; i++)
 				{
-					if (i == 4)
+					tex = chunk->CubeData[x][y][z].texCoord;
+					if (tex.x == 0 && tex.y == 0 && i == 4)
 						tex = glm::vec2(1, 0);
-					else if (i == 5)
+					if (tex.x == 0 && tex.y == 0 && i == 5)
 						tex = glm::vec2(2, 0);
-					else
-						tex = glm::vec2(0, 0);
-					if (y < CHUNK_SIZE_Y / 3)
-						tex = glm::vec2(0, 1);
-					else if (y < CHUNK_SIZE_Y / 3 + 2)
-						tex = glm::vec2(1, 1);
-					if (y < CHUNK_SIZE_Y / 3 - 3)
-						tex = glm::vec2(0, 2);
-
 					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData))
 					{
 						for (size_t j = 0; j < 18; j += 3)
@@ -172,6 +168,10 @@ void createMesh(Chunk *chunk)
 							chunk->Vertices.push_back(VERTICES[j + (i * 18)] + chunk->CubeData[x][y][z].Position.x);
 							chunk->Vertices.push_back(VERTICES[j + 1 + (i * 18)] + chunk->CubeData[x][y][z].Position.y);
 							chunk->Vertices.push_back(VERTICES[j + 2 + (i * 18)] + chunk->CubeData[x][y][z].Position.z);
+
+							chunk->Normal.push_back(NORMAL[j + (i * 18)]);
+							chunk->Normal.push_back(NORMAL[j + 1 + (i * 18)]);
+							chunk->Normal.push_back(NORMAL[j + 2 + (i * 18)]);
 							chunk->texCoord.push_back(tex);
 							chunk->size += 3;
 						}
@@ -190,6 +190,7 @@ void createMesh(Chunk *chunk)
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 {
 	int id = 0;
+	glm::vec2 texCoord = glm::vec2(0, 0);
 
 	Chunk chunk(offsets, chunkId);
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
@@ -218,12 +219,13 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 			chunk.CubeData[x][(int)n][z].Position = glm::vec3((x), (int)(n), (z));
 			chunk.CubeData[x][(int)n][z].Id = id;
+			chunk.CubeData[x][(int)n][z].texCoord = selectTex(n);
 			chunk.CubeData[x][(int)n][z].isEmpty = false;
 			chunk.CubeData[x][(int)n][z].value = n;
 
 			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
 
-			/*for (int y = 50; y < (int)n; y++)
+			for (int y = 50; y < (int)n; y++)
 			{
 				float nn = 0.5;
 				a = 0.7;
@@ -243,6 +245,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 				{
 					chunk.CubeData[x][(y)][z].Position = glm::vec3((x), (y), (z));
 					chunk.CubeData[x][(y)][z].Id = id;
+					chunk.CubeData[x][(y)][z].texCoord = glm::vec2(0, 2);
 					chunk.CubeData[x][(y)][z].isEmpty = false;
 					chunk.CubeData[x][(y)][z].value = y;
 				}
@@ -250,17 +253,25 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 				{
 					chunk.CubeData[x][(y)][z].Position = glm::vec3((x), (y), (z));
 					chunk.CubeData[x][(y)][z].Id = id;
+					chunk.CubeData[x][(y)][z].texCoord = glm::vec2(0, 2);
 					chunk.CubeData[x][(y)][z].isEmpty = false;
 					chunk.CubeData[x][(y)][z].value = y;
 				}
-			}*/
+			}
 		}
 	}
 	createMesh(&chunk);
 	chunk.freeCubeData();
 	return chunk;
 }
-
+glm::vec2 selectTex(int n)
+{
+	if (n < CHUNK_SIZE_Y / 3)
+		return glm::vec2(0, 1);
+	if (n < CHUNK_SIZE_Y / 3 + 3)
+		return glm::vec2(1, 1);
+	return glm::vec2(0, 0);
+}
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum)
 {
 	std::vector<vec3> vec;
@@ -305,14 +316,21 @@ void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *
 	int new_view_distance_z = (VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z);
 	size_t o = 0;
 
-	for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
+	if (vox->chunkCount < 256)
 	{
-		for (int z = (-VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
+		for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 		{
-			createExpendedChunkX(vox, chunks, x, z, o);
-			o++;
+			for (int z = (-VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
+			{
+				if (createExpendedChunkX(vox, chunks, x, z, o))
+				{
+					//goto stop;
+					o++;
+				}
+			}
 		}
 	}
+	//stop:;
 }
 
 void processInput(GLFWwindow *window)

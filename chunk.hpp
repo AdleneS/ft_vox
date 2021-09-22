@@ -15,107 +15,23 @@ public:
 	std::vector<float> Vertices;
 	std::vector<float> UV;
 	std::vector<glm::vec2> texCoord;
+	std::vector<float> Normal;
 	int size;
 	GLuint VAO;
 	GLuint VBO;
 	GLuint UVB;
 	GLuint TOB;
+	GLuint NBO;
 
-	inline Chunk(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), int id = -1)
-	{
-		Id = id;
-		mat = glm::mat4(1.0f);
-		Position = position;
-		size = 0;
-		translate(Position);
-		initCubeData();
-		memCubeData();
-	}
+	Chunk(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), int id = -1);
 	~Chunk();
-	void initCubeData()
-	{
-		CubeData = (Cube ***)malloc(CHUNK_SIZE_X * sizeof(Cube **));
-
-		for (int i = 0; i < CHUNK_SIZE_X; i++)
-		{
-			CubeData[i] = (Cube **)malloc(CHUNK_SIZE_Y * sizeof(Cube *));
-			for (int j = 0; j < CHUNK_SIZE_Y; j++)
-			{
-				CubeData[i][j] = (Cube *)malloc(CHUNK_SIZE_Z * sizeof(Cube));
-			}
-		}
-	}
-	void memCubeData()
-	{
-		for (size_t x = 0; x < CHUNK_SIZE_X; x++)
-		{
-			for (size_t y = 0; y < CHUNK_SIZE_Y; y++)
-			{
-				for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
-				{
-					CubeData[x][y][z].isEmpty = true;
-				}
-			}
-		}
-	}
-	void freeCubeData()
-	{
-		for (int i = 0; i < CHUNK_SIZE_X; i++)
-		{
-			for (int j = 0; j < CHUNK_SIZE_Y; j++)
-			{
-				free(CubeData[i][j]);
-			}
-			free(CubeData[i]);
-		}
-		free(CubeData);
-	}
-	void translate(glm::vec3 v)
-	{
-		mat = glm::translate(mat, v);
-	}
-
-	void loadVBO()
-	{
-		glGenVertexArrays(1, &VAO);
-		glBindVertexArray(VAO);
-		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &UVB);
-		glGenBuffers(1, &TOB);
-
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(float), &Vertices[0], GL_STATIC_DRAW);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-		glEnableVertexAttribArray(0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, UVB);
-		glBufferData(GL_ARRAY_BUFFER, UV.size() * sizeof(float), &UV[0], GL_STATIC_DRAW);
-
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-		glEnableVertexAttribArray(1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, TOB);
-		glBufferData(GL_ARRAY_BUFFER, texCoord.size() * sizeof(glm::vec2), &texCoord[0], GL_STATIC_DRAW);
-
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-		glEnableVertexAttribArray(2);
-	}
+	void initCubeData();
+	void memCubeData();
+	void freeCubeData();
+	void translate(glm::vec3 v);
+	void loadVBO();
 
 private:
 };
 
-inline Chunk::~Chunk()
-{
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &UVB);
-	glDeleteBuffers(1, &TOB);
-	glDeleteVertexArrays(1, &VAO);
-	Vertices.clear();
-	Vertices.shrink_to_fit();
-	UV.clear();
-	UV.shrink_to_fit();
-	texCoord.clear();
-	texCoord.shrink_to_fit();
-}
 #endif
