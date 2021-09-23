@@ -17,6 +17,7 @@ public:
 	std::vector<glm::vec2> texCoord;
 	std::vector<float> Normal;
 	int size;
+	int maxHeight;
 	GLuint VAO;
 	GLuint VBO;
 	GLuint UVB;

@@ -189,19 +189,20 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 {
 	int id = 0;
 	glm::vec2 texCoord = glm::vec2(0, 0);
-
+	SimplexNoise noise;
 	Chunk chunk(offsets, chunkId);
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
 	{
 		for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 		{
+			int maxHeight = 0;
 			float n = 0.5;
 			float a = 0.3;
 			float freq = 0.0032;
 			float value = 0;
 			for (int octave = 0; octave < 8; octave++)
 			{
-				value = a * Get2DPerlinNoiseValue((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1); //glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq));
+				value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1); // * Get2DPerlinNoiseValue((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1); //glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq));
 				n += value;
 				a *= 0.5;
 				freq *= 2.0;
@@ -214,16 +215,18 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 				n = CHUNK_SIZE_Y - 1;
 			if (n <= CHUNK_SIZE_Y / 3)
 				n = CHUNK_SIZE_Y / 3 - 1;
-
+			if (n > maxHeight)
+				maxHeight = n;
 			chunk.CubeData[x][(int)n][z].Position = glm::vec3((x), (int)(n), (z));
 			chunk.CubeData[x][(int)n][z].Id = id;
 			chunk.CubeData[x][(int)n][z].texCoord = selectTex(n);
 			chunk.CubeData[x][(int)n][z].isEmpty = false;
 			chunk.CubeData[x][(int)n][z].value = n;
+			chunk.maxHeight = maxHeight;
 
 			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
 
-			/*for (int y = 50; y < (int)n; y++)
+			for (int y = 50; y < (int)n; y++)
 			{
 				float nn = 0.5;
 				a = 0.7;
@@ -231,7 +234,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 				value = 0;
 				for (int octave = 0; octave < 2; octave++)
 				{
-					value = a * glm::simplex(glm::vec3((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq));
+					value = a * noise.noise((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq); //glm::simplex(glm::vec3((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq));
 					nn += value;
 					a *= 0.5;
 					freq *= 2.0;
@@ -255,7 +258,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 					chunk.CubeData[x][(y)][z].isEmpty = false;
 					chunk.CubeData[x][(y)][z].value = y;
 				}
-			}*/
+			}
 		}
 	}
 	createMesh(&chunk);
@@ -320,12 +323,12 @@ void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *
 		{
 			if (createExpendedChunkX(vox, chunks, x, z, o))
 			{
-				goto stop;
+				//goto stop;
 				o++;
 			}
 		}
 	}
-stop:;
+	//stop:;
 }
 
 void processInput(GLFWwindow *window)

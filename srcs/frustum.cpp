@@ -104,7 +104,7 @@ Frustum::Visibility Frustum::IsInside(const Chunk &chunk) const
         double x0 = chunk.Position.x * clip.x;
         double x1 = (chunk.Position.x + CHUNK_SIZE_X) * clip.x;
         double y0 = chunk.Position.y * clip.y;
-        double y1 = (chunk.Position.y + 128) * clip.y;
+        double y1 = (chunk.maxHeight + 1) * clip.y;
         double z0 = chunk.Position.z * clip.z + clip.w;
         double z1 = (chunk.Position.z + CHUNK_SIZE_Z) * clip.z + clip.w;
         double p1 = x0 + y0 + z0;
