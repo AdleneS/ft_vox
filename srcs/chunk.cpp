@@ -1,5 +1,5 @@
-#include "chunk.hpp"
-#include "const.hpp"
+#include "../headers/chunk.hpp"
+#include "../headers/const.hpp"
 
 Chunk::Chunk(glm::vec3 position, int id)
 {

@@ -16,7 +16,7 @@ void main()
 {
     vec2 coord = (TexCoord - floor(TexCoord) + TexOffset)/vec2(27.0f, -27.0f);
     // ambient
-    vec3 ambient = vec3(0.5, 0.5, 0.5) * texture(texture1, coord).rgb;
+    vec3 ambient = vec3(1, 1, 1) * texture(texture1, coord).rgb;
     // diffuse 
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
@@ -27,9 +27,9 @@ void main()
     float distance    = length(lightPos - FragPos);
     float attenuation = 1.0 / (1.0 + 0.045 * distance + 0.0075 * (distance * distance));    
 
-    ambient  *= attenuation;  
-    diffuse *= attenuation;
+    //ambient  *= attenuation;  
+    //diffuse *= attenuation;
         
-    vec3 result = ambient + diffuse;
+    vec3 result = ambient;// + diffuse;
     FragColor = vec4(result, 1.0);
 } 

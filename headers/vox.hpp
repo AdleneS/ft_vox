@@ -7,8 +7,8 @@
 #include <string>
 #include <time.h>
 
-#include "gl3w/include/GL/gl3w.h"
-#include "gl3w/src/gl3w.c"
+#include "../gl3w/include/GL/gl3w.h"
+#include "../gl3w/src/gl3w.c"
 
 #include "const.hpp"
 
@@ -19,12 +19,14 @@
 #include "vector3.hpp"
 #include "frustum.hpp"
 
-#include "glfw/include/GLFW/glfw3.h"
-#include "glm/glm.hpp"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/gtc/type_ptr.hpp"
-#include "glm/gtc/noise.hpp"
+#include "../glfw/include/GLFW/glfw3.h"
+#include "../glm/glm.hpp"
+#include "../glm/ext/matrix_clip_space.hpp"
+#include "../glm/gtc/type_ptr.hpp"
+#include "../glm/gtc/noise.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.hpp"
 using namespace glm;
 
 #define GLSL(src) #src

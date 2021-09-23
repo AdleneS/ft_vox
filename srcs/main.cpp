@@ -1,7 +1,5 @@
 #include <filesystem>
-#include "vox.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.hpp"
+#include "../headers/vox.hpp"
 
 typedef std::pair<vec3, Chunk *> PosChunk;
 Camera camera(glm::vec3(0.0f, 128.0f, 0.0f));
@@ -101,7 +99,7 @@ int main(void)
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	Shader shader("C:/Users/wks/Desktop/ft_vox/vertex.glsl", "C:/Users/wks/Desktop/ft_vox/fragment.glsl");
+	Shader shader("C:/Users/wks/Desktop/ft_vox/shaders/vertex.glsl", "C:/Users/wks/Desktop/ft_vox/shaders/fragment.glsl");
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetKeyCallback(window, key_callback);
@@ -203,7 +201,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			float value = 0;
 			for (int octave = 0; octave < 8; octave++)
 			{
-				value = a * glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq)); // Get2DPerlinNoiseValue((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
+				value = a * Get2DPerlinNoiseValue((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1); //glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq));
 				n += value;
 				a *= 0.5;
 				freq *= 2.0;
@@ -225,7 +223,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
 
-			for (int y = 50; y < (int)n; y++)
+			/*for (int y = 50; y < (int)n; y++)
 			{
 				float nn = 0.5;
 				a = 0.7;
@@ -233,7 +231,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 				value = 0;
 				for (int octave = 0; octave < 2; octave++)
 				{
-					value = a * glm::simplex(glm::vec3((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq)); //glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq))
+					value = a * glm::simplex(glm::vec3((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq));
 					nn += value;
 					a *= 0.5;
 					freq *= 2.0;
@@ -257,7 +255,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 					chunk.CubeData[x][(y)][z].isEmpty = false;
 					chunk.CubeData[x][(y)][z].value = y;
 				}
-			}
+			}*/
 		}
 	}
 	createMesh(&chunk);
@@ -316,21 +314,18 @@ void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *
 	int new_view_distance_z = (VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z);
 	size_t o = 0;
 
-	if (vox->chunkCount < 256)
+	for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 	{
-		for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
+		for (int z = (-VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
-			for (int z = (-VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
+			if (createExpendedChunkX(vox, chunks, x, z, o))
 			{
-				if (createExpendedChunkX(vox, chunks, x, z, o))
-				{
-					//goto stop;
-					o++;
-				}
+				goto stop;
+				o++;
 			}
 		}
 	}
-	//stop:;
+stop:;
 }
 
 void processInput(GLFWwindow *window)

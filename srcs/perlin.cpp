@@ -1,4 +1,4 @@
-#include "glm/glm.hpp"
+#include "../glm/glm.hpp"
 #include <cstdio>
 static unsigned int perm[] =
     {151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69,

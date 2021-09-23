@@ -1,9 +1,9 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
-#include "gl3w/include/GL/gl3w.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+#include "../gl3w/include/GL/gl3w.h"
+#include "../glm/glm.hpp"
+#include "../glm/gtc/matrix_transform.hpp"
 #include "cube.hpp"
 class Chunk
 {

@@ -1,4 +1,4 @@
-#include "frustum.hpp"
+#include "../headers/frustum.hpp"
 #include <cstdio>
 void Frustum::Transform(const glm::mat4 &proj, const glm::mat4 &view)
 {

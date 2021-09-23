@@ -1,6 +1,6 @@
 #pragma once
 #include "const.hpp"
-#include "glm/glm.hpp"
+#include "../glm/glm.hpp"
 #include "chunk.hpp"
 
 using namespace glm;

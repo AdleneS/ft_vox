@@ -1,9 +1,9 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-#include "gl3w/include/GL/gl3w.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+#include "../gl3w/include/GL/gl3w.h"
+#include "../glm/glm.hpp"
+#include "../glm/gtc/matrix_transform.hpp"
 #include <vector>
 
 static glm::vec3 vert[] = {
