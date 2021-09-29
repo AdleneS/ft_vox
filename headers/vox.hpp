@@ -54,7 +54,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
 void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z);
 void createMesh(Chunk *chunk);
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum);
-glm::vec2 selectTex(int n);
+glm::vec2 selectTex(float n, float b);
 
 float Get2DPerlinNoiseValue(float x, float y, float res);
 
