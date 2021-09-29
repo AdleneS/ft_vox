@@ -1,11 +1,10 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-#include "gl3w/include/GL/gl3w.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+#include "../gl3w/include/GL/gl3w.h"
+#include "../glm/glm.hpp"
+#include "../glm/gtc/matrix_transform.hpp"
 #include <vector>
-#include "cube.hpp"
 
 static glm::vec3 vert[] = {
 	glm::vec3(1, 1, 1),
@@ -26,7 +25,7 @@ static int faceTriangles[][4] = {
 	{3, 2, 7, 6},
 };
 
-std::vector<glm::vec3> faceVertices(std::vector<glm::vec3> v, int dir)
+inline std::vector<glm::vec3> faceVertices(std::vector<glm::vec3> v, int dir)
 {
 	std::vector<glm::vec3> fv;
 	fv = v;
@@ -125,8 +124,48 @@ static float UV[] =
 		0.0f, 1.0f,
 		0.0f, 0.0f};
 
-static int SIZEV = 432;
-static int SIZEUV = 288;
+const float NORMAL[] = {
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f};
 class Cube
 {
 public:

@@ -70,6 +70,7 @@
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "__memory": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "thread": "cpp"
     }
 }

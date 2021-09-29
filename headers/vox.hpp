@@ -3,36 +3,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <map>
 #include <unordered_map>
 #include <string>
-//#define GLFW_DLL
-//#include <GL/glew.h>
-#include "gl3w/include/GL/gl3w.h"
-#include "gl3w/src/gl3w.c"
+#include <time.h>
+#include <thread>
+#include <mutex>
+#include "../gl3w/include/GL/gl3w.h"
+#include "../gl3w/src/gl3w.c"
 
-const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1080;
-
-const float CHUNK_SIZE_X = 16;
-const float CHUNK_SIZE_Y = 256;
-const float CHUNK_SIZE_Z = 16;
-const float VIEW_DISTANCE = 16;
+#include "const.hpp"
 
 #include "shader.hpp"
 #include "camera.hpp"
-#include "cube.hpp"
 #include "chunk.hpp"
 #include "mesh.hpp"
 #include "vector3.hpp"
-#include "perlin.cpp"
+#include "frustum.hpp"
+#include "simplex.hpp"
 
-#include "glfw/include/GLFW/glfw3.h"
-#include "glm/glm.hpp"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/gtc/type_ptr.hpp"
-#include "glm/gtc/noise.hpp"
+#include "../glfw/include/GLFW/glfw3.h"
+#include "../glm/glm.hpp"
+#include "../glm/ext/matrix_clip_space.hpp"
+#include "../glm/gtc/type_ptr.hpp"
+#include "../glm/gtc/noise.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.hpp"
 using namespace glm;
 
 #define GLSL(src) #src
@@ -55,9 +51,10 @@ void processInput(GLFWwindow *window);
 GLuint load_texture(const char *imagePath);
 
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
-void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks);
-void createChunk(t_vox *vox);
+void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start, int end);
 void createMesh(Chunk *chunk);
+void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum);
+glm::vec2 selectTex(int n);
 
 float Get2DPerlinNoiseValue(float x, float y, float res);
 
