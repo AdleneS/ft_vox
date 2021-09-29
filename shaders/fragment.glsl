@@ -27,8 +27,8 @@ void main()
     float distance    = length(lightPos - FragPos);
     float attenuation = 1.0 / (1.0 + 0.045 * distance + 0.0075 * (distance * distance));    
 
-    ambient  *= attenuation;  
-    diffuse *= attenuation;
+    //ambient  *= attenuation;  
+    //diffuse *= attenuation;
 
     vec3 result = ambient;// + diffuse;
     FragColor = vec4(result, 1.0);

@@ -7,6 +7,11 @@ Chunk::Chunk(glm::vec3 position, int id)
     mat = glm::mat4(1.0f);
     Position = position;
     size = 0;
+    VAO = 0;
+    VBO = 0;
+    UVB = 0;
+    TOB = 0;
+    NBO = 0;
     translate(Position);
     initCubeData();
     memCubeData();

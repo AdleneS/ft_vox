@@ -54,15 +54,14 @@ void fps(GLFWwindow *window)
 }
 
 int createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int x, int z, int o)
-{
+{	
 	if (chunks->find(vec3(x, 0, z)) == chunks->end())
 	{
+		//mtx.lock();
 		chunks->emplace(PosChunk(vec3(x, 0, z), new Chunk(createCube(vox, o, vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed))));
-		chunks->at(vec3(x, 0, z))->loadVBO();
-		chunks->at(vec3(x, 0, z))->Vertices.clear();
-		chunks->at(vec3(x, 0, z))->Vertices.shrink_to_fit();
 		vox->chunkCount++;
 		vox->chunkNbX++;
+		//mtx.unlock();
 		return 1;
 	}
 	return 0;
@@ -109,8 +108,10 @@ int main(void)
 	load_texture("/Users/asaba/ft_vox/resources/textures/textures.jpg");
 	shader.setInt("texture", 0);
 	glEnable(GL_DEPTH_TEST);
-	std::thread th(createChunk, vox, &chunks,0 , 4);
-	th.join();
+
+	//chunks.at(vec3(0, 0, 0))->loadVBO();
+	//chunks.at(vec3(0, 0, 0))->Vertices.clear();
+	//chunks.at(vec3(0, 0, 0))->Vertices.shrink_to_fit();
 	while (!glfwWindowShouldClose(window))
 	{
 		Frustum frustum;
@@ -132,13 +133,28 @@ int main(void)
 		frustum.Transform(projection, view);
 		shader.setVec3("lightPos", camera.Position);
 		shader.setVec3("viewPos", camera.Position);
-		//displayChunk(shader, vox, &chunks, frustum);
+		displayChunk(shader, vox, &chunks, frustum);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-
+		std::thread th(createChunk, vox, &chunks,-16 , 0, -16, 0);
+		std::thread th1(createChunk, vox, &chunks, 0, 16, -16, 0);
+		std::thread th2(createChunk, vox, &chunks, -16, 0, 0, 16);
+		std::thread th3(createChunk, vox, &chunks, 0, 16, 0, 16);
+		th.join();
+		th1.join();
+		th2.join();
+		th3.join();
+		for (auto &&c : chunks)
+		{
+			if (c.second->VAO == 0)
+			{	
+				printf("lol\n");
+				c.second->loadVBO();
+				c.second->Vertices.clear();
+				c.second->Vertices.shrink_to_fit();
+			}
+		}
 		
-		//std::thread th1(createChunk, vox, &chunks, 4, 8);
-		//std::thread th2(createChunk, vox, &chunks, 8, 12);
 		//std::thread th3(createChunk, vox, &chunks, 12, 16);
 		 
 		//createChunk(vox, &chunks);
@@ -199,9 +215,7 @@ void createMesh(Chunk *chunk)
 
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 {
-
 	int id = 0;
-	glm::vec2 texCoord = glm::vec2(0, 0);
 	SimplexNoise noise;
 	Chunk chunk(offsets, chunkId);
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
@@ -288,6 +302,7 @@ glm::vec2 selectTex(int n)
 }
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum)
 {
+	(void)vox;
 	std::vector<vec3> vec;
 	int triNb = 0;
 	if (chunks->size() > 0)
@@ -324,24 +339,21 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 	}
 }
 
-void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start, int end)
+void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z)
 {
-	int new_view_distance_x = ((VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X));
-	int new_view_distance_z = ((VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z));
+	int new_view_distance_x = ((end_x) + (int)((int)camera.Position.x / CHUNK_SIZE_X));
+	int new_view_distance_z = ((end_z) + (int)((int)camera.Position.z / CHUNK_SIZE_Z));
 	size_t o = 0;
-
-	for (int x = 0; x < 1; x++)
+	for (int x = (start_x) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 	{
-		for (int z = 0; z < 1; z++)
+		for (int z = (start_z) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
 			if (createExpendedChunkX(vox, chunks, x, z, o))
-			{
-				//goto stop;
-				o++;
-			}
+				goto stop;
+			o++;
 		}
 	}
-	//stop:;
+	stop:;
 }
 
 void processInput(GLFWwindow *window)
