@@ -78,7 +78,7 @@ void Frustum::Normalize(Plane plane)
     m_data[plane][D] /= magnitude;
 }
 
-Frustum::Visibility Frustum::IsInside(const glm::vec3 &point) const
+/*Frustum::Visibility Frustum::IsInside(const glm::vec3 &point) const
 {
     for (unsigned int i = 0; i < 6; i++)
     {
@@ -95,18 +95,18 @@ Frustum::Visibility Frustum::IsInside(const glm::vec3 &point) const
     }
 
     return Completly;
-}
+}*/
 
-Frustum::Visibility Frustum::IsInside(const Chunk &chunk) const
+Frustum::Visibility Frustum::IsInside(const glm::vec3 v) const
 {
-    auto GetVisibility = [](const vec4 &clip, const Chunk &chunk)
+    auto GetVisibility = [](const vec4 &clip, const glm::vec3 v)
     {
-        double x0 = chunk.Position.x * clip.x;
-        double x1 = (chunk.Position.x + CHUNK_SIZE_X) * clip.x;
-        double y0 = chunk.Position.y * clip.y;
-        double y1 = (chunk.maxHeight + 1) * clip.y;
-        double z0 = chunk.Position.z * clip.z + clip.w;
-        double z1 = (chunk.Position.z + CHUNK_SIZE_Z) * clip.z + clip.w;
+        double x0 = v.x * clip.x;
+        double x1 = (v.x + CHUNK_SIZE_X) * clip.x;
+        double y0 = 0 * clip.y;
+        double y1 = (v.y + 1) * clip.y;
+        double z0 = v.z * clip.z + clip.w;
+        double z1 = (v.z + CHUNK_SIZE_Z) * clip.z + clip.w;
         double p1 = x0 + y0 + z0;
         double p2 = x1 + y0 + z0;
         double p3 = x1 + y1 + z0;
@@ -128,31 +128,31 @@ Frustum::Visibility Frustum::IsInside(const Chunk &chunk) const
         return Partially;
     };
 
-    Visibility v0 = GetVisibility(GetPlane(Right), chunk);
+    Visibility v0 = GetVisibility(GetPlane(Right), v);
     if (v0 == Invisible)
     {
         return Invisible;
     }
 
-    Visibility v1 = GetVisibility(GetPlane(Left), chunk);
+    Visibility v1 = GetVisibility(GetPlane(Left), v);
     if (v1 == Invisible)
     {
         return Invisible;
     }
 
-    Visibility v2 = GetVisibility(GetPlane(Bottom), chunk);
+    Visibility v2 = GetVisibility(GetPlane(Bottom), v);
     if (v2 == Invisible)
     {
         return Invisible;
     }
 
-    Visibility v3 = GetVisibility(GetPlane(Top), chunk);
+    Visibility v3 = GetVisibility(GetPlane(Top), v);
     if (v3 == Invisible)
     {
         return Invisible;
     }
 
-    Visibility v4 = GetVisibility(GetPlane(Front), chunk);
+    Visibility v4 = GetVisibility(GetPlane(Front), v);
     if (v4 == Invisible)
     {
         return Invisible;

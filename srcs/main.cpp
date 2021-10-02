@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <string>
 #include "../headers/vox.hpp"
 
 typedef std::pair<vec3, Chunk *> PosChunk;
@@ -10,6 +11,8 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+//std::mutex mtx;
 
 static void error_callback(int error, const char *description)
 {
@@ -34,7 +37,7 @@ t_vox *init()
 	vox->chunkNbX = 4;
 	vox->chunkNbZ = 2;
 	vox->chunkCount = 0;
-	vox->seed = rand() % 10000;
+	vox->seed = 0; //rand() % 10000;
 	return vox;
 }
 
@@ -55,25 +58,51 @@ int createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFun
 {
 	if (chunks->find(vec3(x, 0, z)) == chunks->end())
 	{
+		//mtx.lock();
 		chunks->emplace(PosChunk(vec3(x, 0, z), new Chunk(createCube(vox, o, vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed))));
 		chunks->at(vec3(x, 0, z))->loadVBO();
 		chunks->at(vec3(x, 0, z))->Vertices.clear();
 		chunks->at(vec3(x, 0, z))->Vertices.shrink_to_fit();
 		vox->chunkCount++;
 		vox->chunkNbX++;
+		//mtx.unlock();
 		return 1;
 	}
 	return 0;
 }
 
+void Spiral(int X, int Y, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks)
+{
+	int x, y, dx, dy;
+	x = y = dx = 0;
+	dy = -1;
+	int t = std::max(X, Y);
+	int maxI = t * t;
+	int o;
+	for (int i = 0; i < maxI; i++)
+	{
+		if ((-X / 2 <= x) && (x <= X / 2) && (-Y / 2 <= y) && (y <= Y / 2))
+		{
+			if (createExpendedChunkX(vox, chunks, x, y, o))
+				return;
+			o++;
+		}
+		if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y)))
+		{
+			t = dx;
+			dx = -dy;
+			dy = t;
+		}
+		x += dx;
+		y += dy;
+	}
+}
+
 int main(void)
 {
-
 	GLFWwindow *window;
 	std::unordered_map<vec3, Chunk *, MyHashFunction> chunks;
 	t_vox *vox = init();
-
-	printf("%d\n", vox->seed);
 	glfwSetErrorCallback(error_callback);
 
 	if (!glfwInit())
@@ -105,9 +134,13 @@ int main(void)
 	glfwSetKeyCallback(window, key_callback);
 
 	shader.use();
-	load_texture("C:/Users/wks/Desktop/ft_vox/resources/textures/textures.jpg");
+	load_texture("./resources/textures/textures.jpg");
 	shader.setInt("texture", 0);
 	glEnable(GL_DEPTH_TEST);
+
+	//chunks.at(vec3(0, 0, 0))->loadVBO();
+	//chunks.at(vec3(0, 0, 0))->Vertices.clear();
+	//chunks.at(vec3(0, 0, 0))->Vertices.shrink_to_fit();
 	while (!glfwWindowShouldClose(window))
 	{
 		Frustum frustum;
@@ -132,7 +165,24 @@ int main(void)
 		displayChunk(shader, vox, &chunks, frustum);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-		createChunk(vox, &chunks);
+		createChunk(vox, &chunks, -16, 16, -16, 16, frustum);
+		//std::thread th(createChunk, vox, &chunks,-16 , 0, -16, 0);
+		//std::thread th1(createChunk, vox, &chunks, 0, 16, -16, 0);
+		//std::thread th2(createChunk, vox, &chunks, -16, 0, 0, 16);
+		//std::thread th3(createChunk, vox, &chunks, 0, 16, 0, 16);
+		//th.join();
+		//th1.join();
+		//th2.join();
+		//th3.join();
+		//for (auto &&c : chunks)
+		//{
+		//	if (c.second->VAO == 0)
+		//	{
+		//		c.second->loadVBO();
+		//		c.second->Vertices.clear();
+		//		c.second->Vertices.shrink_to_fit();
+		//	}
+		//}
 	}
 	glfwDestroyWindow(window);
 
@@ -185,10 +235,65 @@ void createMesh(Chunk *chunk)
 	}
 }
 
+float heightSimplex(int x, int z, float seed, glm::vec3 offsets)
+{
+	SimplexNoise noise;
+	float n = 0.5;
+	float a = 0.3;
+	float freq = 0.0032;
+	float value = 0;
+	for (int octave = 0; octave < 8; octave++)
+	{
+		value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
+		n += value;
+		a *= 0.5;
+		freq *= 2.0;
+	}
+	n = (n + 1) / 2;
+	n *= CHUNK_SIZE_Y / 2;
+
+	return n;
+}
+
+float desertSimplex(int x, int z, float seed, glm::vec3 offsets)
+{
+	SimplexNoise noise;
+	float n = 0.3;
+	float a = 2.2;
+	float freq = 0.0008;
+	float value = 3;
+	for (int octave = 0; octave < 2; octave++)
+	{
+		value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
+		n += value;
+		a *= 0.5;
+		freq *= 2.0;
+	}
+	n = (n + 1) / 2;
+
+	return n;
+}
+
+float caveSimplex(int x, int y, int z, float seed, glm::vec3 offsets)
+{
+	SimplexNoise noise;
+	float n = 0.5;
+	float a = 0.7;
+	float freq = 0.0632;
+	float value = 0;
+	for (int octave = 0; octave < 2; octave++)
+	{
+		value = a * noise.noise((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq);
+		n += value;
+		a *= 0.5;
+		freq *= 2.0;
+	}
+	return n;
+}
+
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 {
 	int id = 0;
-	glm::vec2 texCoord = glm::vec2(0, 0);
 	SimplexNoise noise;
 	Chunk chunk(offsets, chunkId);
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
@@ -196,30 +301,15 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 		for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 		{
 			int maxHeight = 0;
-			float n = 0.5;
-			float a = 0.3;
-			float freq = 0.0032;
-			float value = 0;
-			for (int octave = 0; octave < 8; octave++)
-			{
-				value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1); // * Get2DPerlinNoiseValue((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1); //glm::simplex(glm::vec2((x + offsets.x + seed) * freq, (z + offsets.z + seed) * freq));
-				n += value;
-				a *= 0.5;
-				freq *= 2.0;
-			}
-
-			n = (n + 1) / 2;
-
-			n *= CHUNK_SIZE_Y / 2;
-			if (n >= CHUNK_SIZE_Y - 1)
-				n = CHUNK_SIZE_Y - 1;
+			float b = desertSimplex(x, z, seed, offsets);
+			float n = heightSimplex(x, z, seed, offsets);
 			if (n <= CHUNK_SIZE_Y / 3)
 				n = CHUNK_SIZE_Y / 3 - 1;
 			if (n > maxHeight)
 				maxHeight = n;
 			chunk.CubeData[x][(int)n][z].Position = glm::vec3((x), (int)(n), (z));
 			chunk.CubeData[x][(int)n][z].Id = id;
-			chunk.CubeData[x][(int)n][z].texCoord = selectTex(n);
+			chunk.CubeData[x][(int)n][z].texCoord = selectTex(n, b);
 			chunk.CubeData[x][(int)n][z].isEmpty = false;
 			chunk.CubeData[x][(int)n][z].value = n;
 			chunk.maxHeight = maxHeight;
@@ -228,17 +318,7 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 			for (int y = 50; y < (int)n; y++)
 			{
-				float nn = 0.5;
-				a = 0.7;
-				freq = 0.0632;
-				value = 0;
-				for (int octave = 0; octave < 2; octave++)
-				{
-					value = a * noise.noise((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq); //glm::simplex(glm::vec3((x + offsets.x + (float)seed) * freq, (y + (float)seed) * freq, (z + offsets.z + (float)seed) * freq));
-					nn += value;
-					a *= 0.5;
-					freq *= 2.0;
-				}
+				float nn = caveSimplex(x, y, z, seed, offsets);
 
 				nn = (nn + 1) / 2;
 				//if (value < n - 10)
@@ -265,16 +345,22 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	chunk.freeCubeData();
 	return chunk;
 }
-glm::vec2 selectTex(int n)
+glm::vec2 selectTex(float n, float b)
 {
+	//printf("%f\n", b);
 	if (n < CHUNK_SIZE_Y / 3)
 		return glm::vec2(0, 1);
 	if (n < CHUNK_SIZE_Y / 3 + 3)
 		return glm::vec2(1, 1);
+	if (b > 0.9 && b < 1.2)
+		return glm::vec2(1, 1);
+	if (b > 1.2)
+		return glm::vec2(0, 2);
 	return glm::vec2(0, 0);
 }
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum)
 {
+	(void)vox;
 	std::vector<vec3> vec;
 	int triNb = 0;
 	if (chunks->size() > 0)
@@ -290,7 +376,7 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 				vec.emplace_back(it->first);
 				continue;
 			}
-			else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE || frustum.IsInside(*it->second) == Frustum::Invisible)
+			else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE || frustum.IsInside(glm::vec3(it->second->Position.x, it->second->maxHeight, it->second->Position.z)) == Frustum::Invisible)
 			{
 				continue;
 			}
@@ -307,28 +393,27 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 			delete (chunks->find(key)->second);
 			chunks->erase(key);
 		}
-		printf("%d\n", triNb);
+		//printf("%d\n", triNb);
 	}
 }
 
-void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks)
+void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z, Frustum frustum)
 {
-	int new_view_distance_x = (VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X);
-	int new_view_distance_z = (VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z);
+	int new_view_distance_x = ((end_x) + (int)((int)camera.Position.x / CHUNK_SIZE_X));
+	int new_view_distance_z = ((end_z) + (int)((int)camera.Position.z / CHUNK_SIZE_Z));
 	size_t o = 0;
-
-	for (int x = (-VIEW_DISTANCE) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
+	for (int x = (start_x) + (int)((int)camera.Position.x / CHUNK_SIZE_X); x < new_view_distance_x; x++)
 	{
-		for (int z = (-VIEW_DISTANCE) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
+		for (int z = (start_z) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
-			if (createExpendedChunkX(vox, chunks, x, z, o))
-			{
-				//goto stop;
-				o++;
-			}
+			if (frustum.IsInside(glm::vec3(x * CHUNK_SIZE_X, 256, z * CHUNK_SIZE_Z)) == Frustum::Partially)
+				if (createExpendedChunkX(vox, chunks, x, z, o))
+					return;
+			o++;
 		}
 	}
-	//stop:;
+	//printf("%f\n", (std::abs((int)camera.Position.x) / CHUNK_SIZE_X) + 32);
+	//Spiral(((int)camera.Position.x / CHUNK_SIZE_X) + 32, ((int)camera.Position.y / CHUNK_SIZE_Z) + 32, vox, chunks);
 }
 
 void processInput(GLFWwindow *window)
