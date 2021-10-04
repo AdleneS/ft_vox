@@ -73,7 +73,6 @@ int main(void)
 	GLFWwindow *window;
 	std::unordered_map<vec3, Chunk *, MyHashFunction> chunks;
 	t_vox *vox = init();
-
 	glfwSetErrorCallback(error_callback);
 
 	if (!glfwInit())
@@ -97,9 +96,11 @@ int main(void)
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
+	Cubemap skybox;
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	Shader shader("/Users/asaba/ft_vox/shaders/vertex.glsl", "/Users/asaba/ft_vox/shaders/fragment.glsl");
+	Shader skyboxShader("/Users/asaba/ft_vox/shaders/skyboxVs.glsl", "/Users/asaba/ft_vox/shaders/skyboxFs.glsl");
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetKeyCallback(window, key_callback);
@@ -107,6 +108,8 @@ int main(void)
 	shader.use();
 	load_texture("/Users/asaba/ft_vox/resources/textures/textures.png");
 	shader.setInt("texture", 0);
+	skyboxShader.use();
+    skyboxShader.setInt("skybox", 0);
 	glEnable(GL_DEPTH_TEST);
 	glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );	
@@ -133,8 +136,23 @@ int main(void)
 		shader.setVec3("lightPos", glm::vec3(0.7, 0.2, 0.5));
 		shader.setVec3("viewPos", camera.Position);
 		displayChunk(shader, vox, &chunks, frustum);
+		
+		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxShader.use();
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+        skyboxShader.setMat4("view", view);
+        skyboxShader.setMat4("projection", projection);
+        // skybox cube
+        glBindVertexArray(skybox.skyboxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS); // set depth function back to default
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		
 		std::thread th(createChunk, vox, &chunks,-16 , 0, -16, 0);
 		std::thread th1(createChunk, vox, &chunks, 0, 16, -16, 0);
 		std::thread th2(createChunk, vox, &chunks, -16, 0, 0, 16);
@@ -143,22 +161,19 @@ int main(void)
 		th1.join();
 		th2.join();
 		th3.join();
-		for (auto &&c : chunks)
+		for (auto &c : chunks)
 		{
 			if (c.second->VAO == 0)
 			{	
 				c.second->loadVBO();
 				c.second->Vertices.clear();
 				c.second->Vertices.shrink_to_fit();
+    			c.second->UV.clear();
+    			c.second->UV.shrink_to_fit();
+    			c.second->texCoord.clear();
+    			c.second->texCoord.shrink_to_fit();
 			}
 		}
-		
-		//std::thread th3(createChunk, vox, &chunks, 12, 16);
-		 
-		//createChunk(vox, &chunks);
-		//th1.join();
-		//th2.join();
-		//th3.join();
 	}
 	glfwDestroyWindow(window);
 
@@ -415,7 +430,7 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 				triNb += it->second->size / 3;
 			}
 		}
-		for (auto &&key : vec)
+		for (auto &key : vec)
 		{
 			delete (chunks->find(key)->second);
 			chunks->erase(key);

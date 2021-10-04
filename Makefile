@@ -1,6 +1,6 @@
 NAME	= ft_vox
 
-SRCS 	= ./srcs/main.cpp ./srcs/chunk.cpp ./srcs/frustum.cpp ./srcs/simplex.cpp 
+SRCS 	= ./srcs/main.cpp ./srcs/chunk.cpp ./srcs/frustum.cpp ./srcs/simplex.cpp ./srcs/cubemap.cpp 
 
 OBJ_DIR = ./.objs
 SRC_DIR = ./srcs
