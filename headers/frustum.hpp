@@ -40,8 +40,8 @@ public:
         Partially,
         Invisible
     };
-    Visibility IsInside(const glm::vec3 &point) const;
-    Visibility IsInside(const Chunk &chunk) const;
+    // Visibility IsInside(const glm::vec3 &point) const;
+    Visibility IsInside(const glm::vec3 v) const;
 
     //! ACCESSORS:
     glm::dvec4 GetPlane(Plane plane) const;

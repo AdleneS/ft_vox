@@ -25,6 +25,7 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	(void)mods;
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+
 }
 
 t_vox *init()
@@ -83,6 +84,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	
 
 	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "ft_vox", NULL, NULL);
 
@@ -95,8 +97,9 @@ int main(void)
 	gl3wInit();
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
-
+	
 	Cubemap skybox;
+
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	Shader shader("/Users/asaba/ft_vox/shaders/vertex.glsl", "/Users/asaba/ft_vox/shaders/fragment.glsl");
@@ -153,10 +156,10 @@ int main(void)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
-		std::thread th(createChunk, vox, &chunks,-16 , 0, -16, 0);
-		std::thread th1(createChunk, vox, &chunks, 0, 16, -16, 0);
-		std::thread th2(createChunk, vox, &chunks, -16, 0, 0, 16);
-		std::thread th3(createChunk, vox, &chunks, 0, 16, 0, 16);
+		std::thread th(createChunk, vox, &chunks,-VIEW_DISTANCE , 0, -VIEW_DISTANCE, 0, frustum);
+		std::thread th1(createChunk, vox, &chunks, 0, VIEW_DISTANCE, -VIEW_DISTANCE, 0, frustum);
+		std::thread th2(createChunk, vox, &chunks, -VIEW_DISTANCE, 0, 0, VIEW_DISTANCE, frustum);
+		std::thread th3(createChunk, vox, &chunks, 0, VIEW_DISTANCE, 0, VIEW_DISTANCE, frustum);
 		th.join();
 		th1.join();
 		th2.join();
@@ -418,7 +421,7 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 				vec.emplace_back(it->first);
 				continue;
 			}
-			else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE || frustum.IsInside(*it->second) == Frustum::Invisible)
+			else if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE || frustum.IsInside(glm::vec3(it->second->Position.x, it->second->maxHeight, it->second->Position.z)) == Frustum::Invisible)
 			{
 				continue;
 			}
@@ -430,7 +433,7 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 				triNb += it->second->size / 3;
 			}
 		}
-		for (auto &key : vec)
+		for (auto &&key : vec)
 		{
 			delete (chunks->find(key)->second);
 			chunks->erase(key);
@@ -439,7 +442,7 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 	}
 }
 
-void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z)
+void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z, Frustum frustum)
 {
 	int new_view_distance_x = ((end_x) + (int)((int)camera.Position.x / CHUNK_SIZE_X));
 	int new_view_distance_z = ((end_z) + (int)((int)camera.Position.z / CHUNK_SIZE_Z));
@@ -448,8 +451,9 @@ void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *
 	{
 		for (int z = (start_z) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
-			if (createExpendedChunkX(vox, chunks, x, z, o))
-				return;
+			if (frustum.IsInside(glm::vec3(x * CHUNK_SIZE_X, 256, z * CHUNK_SIZE_Z)) == Frustum::Partially)
+				if (createExpendedChunkX(vox, chunks, x, z, o))
+					return;
 			o++;
 		}
 	}
