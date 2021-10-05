@@ -1,5 +1,4 @@
 #include <filesystem>
-#include <string>
 #include "../headers/vox.hpp"
 
 typedef std::pair<vec3, Chunk *> PosChunk;
@@ -65,41 +64,13 @@ int createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFun
 		chunks->at(vec3(x, 0, z))->Vertices.shrink_to_fit();
 		vox->chunkCount++;
 		vox->chunkNbX++;
-		//mtx.unlock();
-		return 1;
 	}
 	return 0;
 }
 
-void Spiral(int X, int Y, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks)
-{
-	int x, y, dx, dy;
-	x = y = dx = 0;
-	dy = -1;
-	int t = std::max(X, Y);
-	int maxI = t * t;
-	int o;
-	for (int i = 0; i < maxI; i++)
-	{
-		if ((-X / 2 <= x) && (x <= X / 2) && (-Y / 2 <= y) && (y <= Y / 2))
-		{
-			if (createExpendedChunkX(vox, chunks, x, y, o))
-				return;
-			o++;
-		}
-		if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y)))
-		{
-			t = dx;
-			dx = -dy;
-			dy = t;
-		}
-		x += dx;
-		y += dy;
-	}
-}
-
 int main(void)
 {
+
 	GLFWwindow *window;
 	std::unordered_map<vec3, Chunk *, MyHashFunction> chunks;
 	t_vox *vox = init();
@@ -125,22 +96,33 @@ int main(void)
 	gl3wInit();
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+<<<<<<< HEAD
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	Shader shader("C:/Users/wks/Desktop/ft_vox/shaders/vertex.glsl", "C:/Users/wks/Desktop/ft_vox/shaders/fragment.glsl");
+	== == == =
+
+				 Cubemap skybox;
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	Shader shader("/Users/asaba/ft_vox/shaders/vertex.glsl", "/Users/asaba/ft_vox/shaders/fragment.glsl");
+	Shader skyboxShader("/Users/asaba/ft_vox/shaders/skyboxVs.glsl", "/Users/asaba/ft_vox/shaders/skyboxFs.glsl");
+>>>>>>> master
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetKeyCallback(window, key_callback);
 
 	shader.use();
-	load_texture("./resources/textures/textures.jpg");
+	load_texture("./resources/textures/textures.png");
 	shader.setInt("texture", 0);
+	skyboxShader.use();
+	skyboxShader.setInt("skybox", 0);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//chunks.at(vec3(0, 0, 0))->loadVBO();
-	//chunks.at(vec3(0, 0, 0))->Vertices.clear();
-	//chunks.at(vec3(0, 0, 0))->Vertices.shrink_to_fit();
 	while (!glfwWindowShouldClose(window))
 	{
 		Frustum frustum;
@@ -166,21 +148,46 @@ int main(void)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		createChunk(vox, &chunks, -16, 16, -16, 16, frustum);
-		//std::thread th(createChunk, vox, &chunks,-16 , 0, -16, 0);
-		//std::thread th1(createChunk, vox, &chunks, 0, 16, -16, 0);
-		//std::thread th2(createChunk, vox, &chunks, -16, 0, 0, 16);
-		//std::thread th3(createChunk, vox, &chunks, 0, 16, 0, 16);
+
+		shader.setVec3("lightPos", glm::vec3(0.7, 0.2, 0.5));
+		shader.setVec3("viewPos", camera.Position);
+		displayChunk(shader, vox, &chunks, frustum);
+
+		glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
+		skyboxShader.use();
+		view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+		skyboxShader.setMat4("view", view);
+		skyboxShader.setMat4("projection", projection);
+		// skybox cube
+		glBindVertexArray(skybox.skyboxVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.cubemapTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glDepthFunc(GL_LESS); // set depth function back to default
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+
+		//std::thread th(createChunk, vox, &chunks,-VIEW_DISTANCE , 0, -VIEW_DISTANCE, 0, frustum);
+		//std::thread th1(createChunk, vox, &chunks, 0, VIEW_DISTANCE, -VIEW_DISTANCE, 0, frustum);
+		//std::thread th2(createChunk, vox, &chunks, -VIEW_DISTANCE, 0, 0, VIEW_DISTANCE, frustum);
+		//std::thread th3(createChunk, vox, &chunks, 0, VIEW_DISTANCE, 0, VIEW_DISTANCE, frustum);
 		//th.join();
 		//th1.join();
 		//th2.join();
 		//th3.join();
-		//for (auto &&c : chunks)
+		//for (auto &c : chunks)
 		//{
 		//	if (c.second->VAO == 0)
 		//	{
 		//		c.second->loadVBO();
 		//		c.second->Vertices.clear();
 		//		c.second->Vertices.shrink_to_fit();
+		//		c.second->UV.clear();
+		//		c.second->UV.shrink_to_fit();
+		//		c.second->texCoord.clear();
+		//		c.second->texCoord.shrink_to_fit();
 		//	}
 		//}
 	}
@@ -209,7 +216,7 @@ void createMesh(Chunk *chunk)
 						tex = glm::vec2(1, 0);
 					if (tex.x == 0 && tex.y == 0 && i == 5)
 						tex = glm::vec2(2, 0);
-					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData))
+					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData) || chunk->CubeData[x][y][z].texCoord == glm::vec2(2, 3))
 					{
 						for (size_t j = 0; j < 18; j += 3)
 						{
@@ -235,12 +242,12 @@ void createMesh(Chunk *chunk)
 	}
 }
 
-float heightSimplex(int x, int z, float seed, glm::vec3 offsets)
+float heightSimplex(float n, float a, float freq, int x, int z, float seed, glm::vec3 offsets)
 {
 	SimplexNoise noise;
-	float n = 0.5;
-	float a = 0.3;
-	float freq = 0.0032;
+	//float n = 0.5;
+	//float a = 0.3;
+	//float freq = 0.0032;
 	float value = 0;
 	for (int octave = 0; octave < 8; octave++)
 	{
@@ -260,11 +267,7 @@ float desertSimplex(int x, int z, float seed, glm::vec3 offsets)
 	SimplexNoise noise;
 	float n = 0.3;
 	float a = 2.2;
-	float freq = 0.0008;
-	float value = 3;
-	for (int octave = 0; octave < 2; octave++)
 	{
-		value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
 		n += value;
 		a *= 0.5;
 		freq *= 2.0;
@@ -291,6 +294,42 @@ float caveSimplex(int x, int y, int z, float seed, glm::vec3 offsets)
 	return n;
 }
 
+void populateChunk(Chunk *chunk, int x, int n, int z, int id, float b, int maxHeight)
+{
+	chunk->CubeData[x][(int)n][z].Position = glm::vec3((x), (int)(n), (z));
+	chunk->CubeData[x][(int)n][z].Id = id;
+	chunk->CubeData[x][(int)n][z].texCoord = selectTex(n, b);
+	chunk->CubeData[x][(int)n][z].isEmpty = false;
+	chunk->CubeData[x][(int)n][z].value = n;
+	chunk->maxHeight = maxHeight;
+}
+
+void createTree(Chunk *chunk, int x, int n, int z, int id)
+{
+	for (size_t i = 0; i < 5; i++)
+	{
+		chunk->CubeData[x][(int)n + i][z].Position = glm::vec3((x), (int)(n + i), (z));
+		chunk->CubeData[x][(int)n + i][z].texCoord = glm::vec2(0, 3);
+		chunk->CubeData[x][(int)n + i][z].isEmpty = false;
+	}
+	for (size_t j = 0; j < 3; j++)
+	{
+		for (size_t k = 0; k < 3; k++)
+		{
+			for (size_t l = 0; l < 3; l++)
+			{
+				if (x - 1 + k > 0 && x - 1 + k < 16 && n + 3 + l > 0 && n + 3 + l < 256 && z - 1 + j > 0 && z - 1 + j < 16)
+				{
+					chunk->CubeData[x - 1 + k][(int)n + 3 + l][z - 1 + j].Position = glm::vec3((x - 1 + k), (int)(n + 3 + l), (z - 1 + j));
+					chunk->CubeData[x - 1 + k][(int)n + 3 + l][z - 1 + j].texCoord = glm::vec2(2, 3);
+					chunk->CubeData[x - 1 + k][(int)n + 3 + l][z - 1 + j].isEmpty = false;
+					chunk->maxHeight = (int)n + 3 + l;
+				}
+			}
+		}
+	}
+}
+
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 {
 	int id = 0;
@@ -300,19 +339,33 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	{
 		for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 		{
+			float n = 0;
 			int maxHeight = 0;
 			float b = desertSimplex(x, z, seed, offsets);
-			float n = heightSimplex(x, z, seed, offsets);
-			if (n <= CHUNK_SIZE_Y / 3)
-				n = CHUNK_SIZE_Y / 3 - 1;
+			if (b > 1.2)
+				n = heightSimplex(0.5, 0.3, 0.0072, x, z, seed, offsets);
+			else
+				n = heightSimplex(0.5, 0.3, 0.0032, x, z, seed, offsets);
+
+			if (b < 0.9)
+			{
+				if (n <= CHUNK_SIZE_Y / 3)
+					n = CHUNK_SIZE_Y / 3;
+			}
 			if (n > maxHeight)
 				maxHeight = n;
-			chunk.CubeData[x][(int)n][z].Position = glm::vec3((x), (int)(n), (z));
-			chunk.CubeData[x][(int)n][z].Id = id;
-			chunk.CubeData[x][(int)n][z].texCoord = selectTex(n, b);
-			chunk.CubeData[x][(int)n][z].isEmpty = false;
-			chunk.CubeData[x][(int)n][z].value = n;
-			chunk.maxHeight = maxHeight;
+			float r = noise.noise(x + offsets.x, z + offsets.z);
+			r = (r + 1) / 2;
+			//printf("%f\n", r);
+			populateChunk(&chunk, x, n, z, id, b, maxHeight);
+
+			if (n > CHUNK_SIZE_Y / 3 + 4 && b < 0.9)
+			{
+				if (r > 0.9835)
+				{
+					createTree(&chunk, x, n, z, id);
+				}
+			}
 
 			id = id + 1 + chunkId * (vox->chunkNbX + vox->chunkNbZ);
 
@@ -321,7 +374,6 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 				float nn = caveSimplex(x, y, z, seed, offsets);
 
 				nn = (nn + 1) / 2;
-				//if (value < n - 10)
 				if (nn > 0.8)
 				{
 					chunk.CubeData[x][(y)][z].Position = glm::vec3((x), (y), (z));
@@ -345,19 +397,20 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 	chunk.freeCubeData();
 	return chunk;
 }
+
 glm::vec2 selectTex(float n, float b)
 {
-	//printf("%f\n", b);
-	if (n < CHUNK_SIZE_Y / 3)
-		return glm::vec2(0, 1);
-	if (n < CHUNK_SIZE_Y / 3 + 3)
-		return glm::vec2(1, 1);
 	if (b > 0.9 && b < 1.2)
 		return glm::vec2(1, 1);
 	if (b > 1.2)
 		return glm::vec2(0, 2);
+	if (n < CHUNK_SIZE_Y / 3)
+		return glm::vec2(0, 1);
+	if (n < CHUNK_SIZE_Y / 3 + 3)
+		return glm::vec2(1, 1);
 	return glm::vec2(0, 0);
 }
+
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum)
 {
 	(void)vox;
@@ -412,8 +465,6 @@ void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *
 			o++;
 		}
 	}
-	//printf("%f\n", (std::abs((int)camera.Position.x) / CHUNK_SIZE_X) + 32);
-	//Spiral(((int)camera.Position.x / CHUNK_SIZE_X) + 32, ((int)camera.Position.y / CHUNK_SIZE_Z) + 32, vox, chunks);
 }
 
 void processInput(GLFWwindow *window)
@@ -487,13 +538,9 @@ GLuint load_texture(const char *imagePath)
 	unsigned char *data = stbi_load(imagePath, &width, &height, &nrChannels, 0);
 	if (data)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		{
+		}
+		stbi_image_free(data);
+		return texture1;
 	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-	return texture1;
-}

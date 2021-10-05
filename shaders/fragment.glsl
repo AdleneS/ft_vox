@@ -16,20 +16,24 @@ void main()
 {
     vec2 coord = (TexCoord - floor(TexCoord) + TexOffset)/vec2(27.0f, -27.0f);
     // ambient
-    vec3 ambient = vec3(1, 1, 1) * texture(texture1, coord).rgb;
+    vec4 tex = texture(texture1, coord);
+    if (tex.a < 0.1)
+    {
+        discard; // yes: discard this fragment
+    }
+    vec3 ambient = vec3(0.9, 0.9, 0.9) * tex.rgb;
     // diffuse 
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = vec3(0.5, 0.5, 0.5) * diff;  
+    vec3 diffuse = vec3(0.1, 0.1, 0.1) * diff;  
     
     // attenuation
     float distance    = length(lightPos - FragPos);
     float attenuation = 1.0 / (1.0 + 0.045 * distance + 0.0075 * (distance * distance));    
 
-   //ambient  *= attenuation;  
-   //diffuse *= attenuation;
-
-    vec3 result = ambient;// + diffuse;
+    //ambient  *= attenuation;  
+    //diffuse *= attenuation;
+    vec3 result = ambient  + diffuse;
     FragColor = vec4(result, 1.0);
 } 

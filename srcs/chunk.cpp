@@ -98,6 +98,7 @@ Chunk::~Chunk()
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &UVB);
     glDeleteBuffers(1, &TOB);
+    glDeleteBuffers(1, &NBO);
     glDeleteVertexArrays(1, &VAO);
     Vertices.clear();
     Vertices.shrink_to_fit();

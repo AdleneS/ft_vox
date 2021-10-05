@@ -20,6 +20,7 @@
 #include "vector3.hpp"
 #include "frustum.hpp"
 #include "simplex.hpp"
+#include "cubemap.hpp"
 
 #include "../glfw/include/GLFW/glfw3.h"
 #include "../glm/glm.hpp"

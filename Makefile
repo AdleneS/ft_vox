@@ -1,6 +1,10 @@
 NAME	= ft_vox
 
+<<<<<<< HEAD
 SRCS 	= ./srcs/main.cpp ./srcs/chunk.cpp ./srcs/frustum.cpp ./srcs/simplex.cpp 
+=======
+SRCS 	= ./srcs/main.cpp ./srcs/chunk.cpp ./srcs/frustum.cpp ./srcs/simplex.cpp ./srcs/cubemap.cpp 
+>>>>>>> master
 
 OBJ_DIR = ./.objs
 SRC_DIR = ./srcs
@@ -8,7 +12,11 @@ INC_DIR = ./include
 INC_HDR =	-I./ -I./glfw/include -I./gl3w/include/GL
 INC_LIB =	-L./glfw/src -lglfw3 -lpthread -pthread\
 			-framework OpenGL -framework AppKit -framework Cocoa -framework IOKit -framework CoreVideo
+<<<<<<< HEAD
 INC_H	= ./headers/vox.hpp ./headers/chunk.hpp./headers/const.hpp ./headers/cube.hpp ./headers/frustum.hpp ./headers/mesh.hpp ./headers/shader.hpp ./headers/simplex.hpp ./headers/stb_image.hpp ./headers/vector3.hpp
+=======
+INC_H	= ./headers/vox.hpp ./headers/chunk.hpp ./headers/const.hpp ./headers/cube.hpp ./headers/frustum.hpp ./headers/mesh.hpp ./headers/shader.hpp ./headers/simplex.hpp ./headers/stb_image.hpp ./headers/vector3.hpp
+>>>>>>> master
 
 CFLAGS	:= -std=c++11 -stdlib=libc++ -Wall -Wextra -O3 -I$(INC_DIR)
 OBJS	:= $(patsubst .$(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,  $(SRCS))
