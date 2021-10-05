@@ -64,6 +64,7 @@ int createExpendedChunkX(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFun
 		chunks->at(vec3(x, 0, z))->Vertices.shrink_to_fit();
 		vox->chunkCount++;
 		vox->chunkNbX++;
+		return 1;
 	}
 	return 0;
 }
@@ -96,20 +97,13 @@ int main(void)
 	gl3wInit();
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
-<<<<<<< HEAD
-
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	Shader shader("C:/Users/wks/Desktop/ft_vox/shaders/vertex.glsl", "C:/Users/wks/Desktop/ft_vox/shaders/fragment.glsl");
-	== == == =
-
-				 Cubemap skybox;
+	Shader shader("./shaders/vertex.glsl", "./shaders/fragment.glsl");
+	Shader skyboxShader("./shaders/skyboxVs.glsl", "./shaders/skyboxFs.glsl");
+	Cubemap skybox;
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	Shader shader("/Users/asaba/ft_vox/shaders/vertex.glsl", "/Users/asaba/ft_vox/shaders/fragment.glsl");
-	Shader skyboxShader("/Users/asaba/ft_vox/shaders/skyboxVs.glsl", "/Users/asaba/ft_vox/shaders/skyboxFs.glsl");
->>>>>>> master
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetKeyCallback(window, key_callback);
@@ -142,12 +136,6 @@ int main(void)
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 		frustum.Transform(projection, view);
-		shader.setVec3("lightPos", camera.Position);
-		shader.setVec3("viewPos", camera.Position);
-		displayChunk(shader, vox, &chunks, frustum);
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-		createChunk(vox, &chunks, -16, 16, -16, 16, frustum);
 
 		shader.setVec3("lightPos", glm::vec3(0.7, 0.2, 0.5));
 		shader.setVec3("viewPos", camera.Position);
@@ -168,6 +156,7 @@ int main(void)
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		createChunk(vox, &chunks, -16, 16, -16, 16, frustum);
 
 		//std::thread th(createChunk, vox, &chunks,-VIEW_DISTANCE , 0, -VIEW_DISTANCE, 0, frustum);
 		//std::thread th1(createChunk, vox, &chunks, 0, VIEW_DISTANCE, -VIEW_DISTANCE, 0, frustum);
@@ -267,7 +256,11 @@ float desertSimplex(int x, int z, float seed, glm::vec3 offsets)
 	SimplexNoise noise;
 	float n = 0.3;
 	float a = 2.2;
+	float freq = 0.0008;
+	float value = 3;
+	for (int octave = 0; octave < 9; octave++)
 	{
+		value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
 		n += value;
 		a *= 0.5;
 		freq *= 2.0;
@@ -347,11 +340,11 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			else
 				n = heightSimplex(0.5, 0.3, 0.0032, x, z, seed, offsets);
 
-			if (b < 0.9)
-			{
-				if (n <= CHUNK_SIZE_Y / 3)
-					n = CHUNK_SIZE_Y / 3;
-			}
+			//if (b < 0.9)
+			//{
+			if (n <= CHUNK_SIZE_Y / 3)
+				n = CHUNK_SIZE_Y / 3;
+			//}
 			if (n > maxHeight)
 				maxHeight = n;
 			float r = noise.noise(x + offsets.x, z + offsets.z);
@@ -400,14 +393,14 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 glm::vec2 selectTex(float n, float b)
 {
-	if (b > 0.9 && b < 1.2)
-		return glm::vec2(1, 1);
-	if (b > 1.2)
-		return glm::vec2(0, 2);
 	if (n < CHUNK_SIZE_Y / 3)
 		return glm::vec2(0, 1);
 	if (n < CHUNK_SIZE_Y / 3 + 3)
 		return glm::vec2(1, 1);
+	if (b > 0.9 && b < 1.2)
+		return glm::vec2(1, 1);
+	if (b > 1.2)
+		return glm::vec2(0, 2);
 	return glm::vec2(0, 0);
 }
 
@@ -471,7 +464,6 @@ void processInput(GLFWwindow *window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -539,8 +531,12 @@ GLuint load_texture(const char *imagePath)
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		{
-		}
-		stbi_image_free(data);
-		return texture1;
+		glGenerateMipmap(GL_TEXTURE_2D);
 	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+	return texture1;
+}
