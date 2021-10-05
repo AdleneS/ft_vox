@@ -11,7 +11,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-//std::mutex mtx;
+std::mutex mtx;
 
 static void error_callback(int error, const char *description)
 {
@@ -120,7 +120,7 @@ int main(void)
 	while (!glfwWindowShouldClose(window))
 	{
 		Frustum frustum;
-		fps(window);
+		//fps(window);
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -158,7 +158,7 @@ int main(void)
 		glfwPollEvents();
 		createChunk(vox, &chunks, -16, 16, -16, 16, frustum);
 
-		//std::thread th(createChunk, vox, &chunks,-VIEW_DISTANCE , 0, -VIEW_DISTANCE, 0, frustum);
+		//std::thread th(createChunk, vox, &chunks, -VIEW_DISTANCE, 0, -VIEW_DISTANCE, 0, frustum);
 		//std::thread th1(createChunk, vox, &chunks, 0, VIEW_DISTANCE, -VIEW_DISTANCE, 0, frustum);
 		//std::thread th2(createChunk, vox, &chunks, -VIEW_DISTANCE, 0, 0, VIEW_DISTANCE, frustum);
 		//std::thread th3(createChunk, vox, &chunks, 0, VIEW_DISTANCE, 0, VIEW_DISTANCE, frustum);
@@ -166,17 +166,18 @@ int main(void)
 		//th1.join();
 		//th2.join();
 		//th3.join();
+		//
 		//for (auto &c : chunks)
 		//{
 		//	if (c.second->VAO == 0)
 		//	{
 		//		c.second->loadVBO();
-		//		c.second->Vertices.clear();
-		//		c.second->Vertices.shrink_to_fit();
-		//		c.second->UV.clear();
-		//		c.second->UV.shrink_to_fit();
-		//		c.second->texCoord.clear();
-		//		c.second->texCoord.shrink_to_fit();
+		//		//c.second->Vertices.clear();
+		//		//c.second->Vertices.shrink_to_fit();
+		//		//c.second->UV.clear();
+		//		//c.second->UV.shrink_to_fit();
+		//		//c.second->texCoord.clear();
+		//		//c.second->texCoord.shrink_to_fit();
 		//	}
 		//}
 	}
@@ -454,7 +455,9 @@ void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *
 		{
 			if (frustum.IsInside(glm::vec3(x * CHUNK_SIZE_X, 256, z * CHUNK_SIZE_Z)) == Frustum::Partially)
 				if (createExpendedChunkX(vox, chunks, x, z, o))
+				{
 					return;
+				}
 			o++;
 		}
 	}

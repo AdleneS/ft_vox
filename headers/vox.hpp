@@ -27,7 +27,6 @@
 #include "../glm/ext/matrix_clip_space.hpp"
 #include "../glm/gtc/type_ptr.hpp"
 #include "../glm/gtc/noise.hpp"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.hpp"
 using namespace glm;
