@@ -156,14 +156,26 @@ int main(void)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
-		std::thread th(createChunk, vox, &chunks,-VIEW_DISTANCE , 0, -VIEW_DISTANCE, 0, frustum);
-		std::thread th1(createChunk, vox, &chunks, 0, VIEW_DISTANCE, -VIEW_DISTANCE, 0, frustum);
-		std::thread th2(createChunk, vox, &chunks, -VIEW_DISTANCE, 0, 0, VIEW_DISTANCE, frustum);
-		std::thread th3(createChunk, vox, &chunks, 0, VIEW_DISTANCE, 0, VIEW_DISTANCE, frustum);
+		std::thread th(createChunk, vox, &chunks,-VIEW_DISTANCE , -8, -VIEW_DISTANCE, 0, frustum);
+		std::thread th1(createChunk, vox, &chunks,-VIEW_DISTANCE / 2 , 0, -VIEW_DISTANCE, 0, frustum);
+		
+		std::thread th2(createChunk, vox, &chunks,-VIEW_DISTANCE, -VIEW_DISTANCE / 2, 0, VIEW_DISTANCE, frustum);
+		std::thread th3(createChunk, vox, &chunks,-VIEW_DISTANCE / 2 , 0, 0, VIEW_DISTANCE, frustum);
+
+
+		std::thread th4(createChunk, vox, &chunks, 0, VIEW_DISTANCE / 2, -VIEW_DISTANCE, VIEW_DISTANCE, frustum);
+		std::thread th5(createChunk, vox, &chunks, VIEW_DISTANCE / 2, VIEW_DISTANCE, 0, VIEW_DISTANCE, frustum);
+		
+		std::thread th6(createChunk, vox, &chunks, 0, VIEW_DISTANCE / 2, -VIEW_DISTANCE, 0, frustum);
+		std::thread th7(createChunk, vox, &chunks, VIEW_DISTANCE / 2, VIEW_DISTANCE, -VIEW_DISTANCE, 0, frustum);
 		th.join();
 		th1.join();
 		th2.join();
 		th3.join();
+		th4.join();
+		th5.join();
+		th6.join();
+		th7.join();
 		for (auto &c : chunks)
 		{
 			if (c.second->VAO == 0)
@@ -256,7 +268,7 @@ float	desertSimplex(int x, int z, float seed, glm::vec3 offsets)
 	float a = 2.2;
 	float freq = 0.0008;
 	float value = 3;
-	for (int octave = 0; octave < 2; octave++)
+	for (int octave = 0; octave < 8; octave++)
 	{
 		value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
 		n += value;
@@ -438,7 +450,7 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 			delete (chunks->find(key)->second);
 			chunks->erase(key);
 		}
-		//printf("%d\n", triNb);
+		printf("%d\n", triNb);
 	}
 }
 
@@ -455,6 +467,7 @@ void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *
 				if (createExpendedChunkX(vox, chunks, x, z, o))
 					return;
 			o++;
+			
 		}
 	}
 }
