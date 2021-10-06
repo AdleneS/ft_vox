@@ -69,13 +69,13 @@ void Chunk::loadVBO()
     glGenBuffers(1, &NBO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(float), &Vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(glm::vec3), &Vertices[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, UVB);
-    glBufferData(GL_ARRAY_BUFFER, UV.size() * sizeof(float), &UV[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, UV.size() * sizeof(glm::vec2), &UV[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(1);
@@ -87,7 +87,7 @@ void Chunk::loadVBO()
     glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, NBO);
-    glBufferData(GL_ARRAY_BUFFER, Normal.size() * sizeof(float), &Normal[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, Normal.size() * sizeof(glm::vec3), &Normal[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(3);

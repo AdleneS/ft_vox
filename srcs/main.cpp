@@ -219,20 +219,20 @@ void createMesh(Chunk *chunk)
 					{
 						for (size_t j = 0; j < 18; j += 3)
 						{
-							chunk->Vertices.push_back(VERTICES[j + (i * 18)] + chunk->CubeData[x][y][z].Position.x);
-							chunk->Vertices.push_back(VERTICES[j + 1 + (i * 18)] + chunk->CubeData[x][y][z].Position.y);
-							chunk->Vertices.push_back(VERTICES[j + 2 + (i * 18)] + chunk->CubeData[x][y][z].Position.z);
+							chunk->Vertices.push_back(glm::vec3(VERTICES[j + (i * 18)] + chunk->CubeData[x][y][z].Position.x,
+							VERTICES[j + 1 + (i * 18)] + chunk->CubeData[x][y][z].Position.y,
+							VERTICES[j + 2 + (i * 18)] + chunk->CubeData[x][y][z].Position.z));
 
-							chunk->Normal.push_back(NORMAL[j + (i * 18)]);
-							chunk->Normal.push_back(NORMAL[j + 1 + (i * 18)]);
-							chunk->Normal.push_back(NORMAL[j + 2 + (i * 18)]);
+							chunk->Normal.push_back(glm::vec3(NORMAL[j + (i * 18)],
+							NORMAL[j + 1 + (i * 18)],
+							NORMAL[j + 2 + (i * 18)]));
 							chunk->texCoord.push_back(tex);
 							chunk->size += 3;
 						}
 						for (size_t k = 0; k < 12; k += 2)
 						{
-							chunk->UV.push_back(UV[k + (i * 12)]);
-							chunk->UV.push_back(UV[k + 1 + (i * 12)]);
+							chunk->UV.push_back(glm::vec2(UV[k + (i * 12)],
+							 UV[k + 1 + (i * 12)]));
 						}
 					}
 				}
@@ -351,11 +351,9 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			else	
 				n = heightSimplex(0.5, 0.3, 0.0032, x, z, seed, offsets);
 
-			if (b < 0.9)
-			{
-				if (n <= CHUNK_SIZE_Y / 3)
-					n = CHUNK_SIZE_Y / 3;
-			}
+			if (n <= CHUNK_SIZE_Y / 3)
+				n = CHUNK_SIZE_Y / 3;
+		
 			if (n > maxHeight)
 				maxHeight = n;
 			float r = noise.noise(x + offsets.x, z + offsets.z);
@@ -404,15 +402,22 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 
 glm::vec2 selectTex(float n, float b)
 {
-	if (b > 0.9 && b < 1.2)
-		return glm::vec2(1, 1);
-	if (b > 1.2)
-		return glm::vec2(0, 2);
 	if (n < CHUNK_SIZE_Y / 3)
 		return glm::vec2(0, 1);
 	if (n < CHUNK_SIZE_Y / 3 + 3)
 		return glm::vec2(1, 1);
+	if (b > 0.9 && b < 1.2)
+		return glm::vec2(1, 1);
+	if (b > 1.2)
+		return glm::vec2(0, 2);
 	return glm::vec2(0, 0);
+}
+
+bool comp(const std::pair<glm::vec3, Chunk*> &c1, const std::pair<glm::vec3, Chunk*> &c2)
+{
+	int distanceFromChunk1 = sqrt(pow((camera.Position.x - (c1.second->Position.x + 8)), 2) + pow((camera.Position.z - (c1.second->Position.z + 8)), 2));
+	int distanceFromChunk2 = sqrt(pow((camera.Position.x - (c2.second->Position.x + 8)), 2) + pow((camera.Position.z - (c2.second->Position.z + 8)), 2));
+	return distanceFromChunk1 < distanceFromChunk2;
 }
 
 void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum)
@@ -422,9 +427,11 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 	int triNb = 0;
 	if (chunks->size() > 0)
 	{
+		std::vector<std::pair<glm::vec3, Chunk*>> elems(chunks->begin(), chunks->end());
+		std::sort(elems.begin(), elems.end(), comp);
 		glfwPollEvents();
 
-		for (auto it = chunks->begin(); it != chunks->end(); ++it)
+		for (auto it = elems.begin(); it != elems.end(); ++it)
 		{
 			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
 
@@ -450,9 +457,10 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, M
 			delete (chunks->find(key)->second);
 			chunks->erase(key);
 		}
-		printf("%d\n", triNb);
+		//printf("%d\n", triNb);
 	}
 }
+
 
 void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z, Frustum frustum)
 {
@@ -467,7 +475,7 @@ void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *
 				if (createExpendedChunkX(vox, chunks, x, z, o))
 					return;
 			o++;
-			
+
 		}
 	}
 }

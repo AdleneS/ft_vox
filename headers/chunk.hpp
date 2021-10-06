@@ -12,10 +12,10 @@ public:
 	glm::vec3 Position;
 	glm::mat4x4 mat;
 	Cube ***CubeData;
-	std::vector<float> Vertices;
-	std::vector<float> UV;
+	std::vector<glm::vec3> Vertices;
+	std::vector<glm::vec3> Normal;
 	std::vector<glm::vec2> texCoord;
-	std::vector<float> Normal;
+	std::vector<glm::vec2> UV;
 	int size;
 	int maxHeight;
 	GLuint VAO;
