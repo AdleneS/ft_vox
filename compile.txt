@@ -1,1 +1,1 @@
-g++ ./srcs/main.cpp ./srcs/simplex.cpp ./srcs/frustum.cpp ./srcs/chunk.cpp -o vox -L./glfw/src ./glfw/libglfw3.a -lopengl32 -lglu32 -lgdi32 -luser32 -lkernel32
+g++ ./srcs/main.cpp ./srcs/simplex.cpp ./srcs/frustum.cpp ./srcs/chunk.cpp ./srcs/cubemap.cpp -o vox -pthread -lopengl32 -lglu32 -lgdi32 -luser32 -lkernel32 -lglfw3dll

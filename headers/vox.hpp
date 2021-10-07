@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <string>
 #include <time.h>
+#include <algorithm>
 #include <thread>
 #include <mutex>
 #include "../gl3w/include/GL/gl3w.h"
@@ -30,7 +31,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.hpp"
-using namespace glm;
 
 #define GLSL(src) #src
 
@@ -52,9 +52,9 @@ void processInput(GLFWwindow *window);
 GLuint load_texture(const char *imagePath);
 
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
-void createChunk(t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z, Frustum frustum);
+void createChunk(t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z);
 void createMesh(Chunk *chunk);
-void displayChunk(Shader shader, t_vox *vox, std::unordered_map<vec3, Chunk *, MyHashFunction> *chunks, Frustum frustum);
+void displayChunk(Shader shader, t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks);
 glm::vec2 selectTex(float n, float b);
 
 float Get2DPerlinNoiseValue(float x, float y, float res);

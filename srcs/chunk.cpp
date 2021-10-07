@@ -106,4 +106,6 @@ Chunk::~Chunk()
     UV.shrink_to_fit();
     texCoord.clear();
     texCoord.shrink_to_fit();
+    Normal.clear();
+    Normal.shrink_to_fit();
 }

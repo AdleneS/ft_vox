@@ -3,7 +3,6 @@
 #include "../glm/glm.hpp"
 #include "chunk.hpp"
 
-using namespace glm;
 class Frustum
 {
 public:

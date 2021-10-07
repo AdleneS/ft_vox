@@ -99,7 +99,7 @@ void Frustum::Normalize(Plane plane)
 
 Frustum::Visibility Frustum::IsInside(const glm::vec3 v) const
 {
-    auto GetVisibility = [](const vec4 &clip, const glm::vec3 v)
+    auto GetVisibility = [](const glm::vec4 &clip, const glm::vec3 v)
     {
         double x0 = v.x * clip.x;
         double x1 = (v.x + CHUNK_SIZE_X) * clip.x;
