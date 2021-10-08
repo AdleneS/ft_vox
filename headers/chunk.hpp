@@ -19,11 +19,6 @@ public:
 	std::vector<glm::vec2> UV;
 	int size;
 	int maxHeight;
-	GLuint VAO;
-	GLuint VBO;
-	GLuint UVB;
-	GLuint TOB;
-	GLuint NBO;
 
 	Chunk(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), int id = -1);
 	~Chunk();
@@ -31,7 +26,6 @@ public:
 	void memCubeData();
 	void freeCubeData();
 	void translate(glm::vec3 v);
-	void loadVBO();
 
 private:
 };

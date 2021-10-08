@@ -7,11 +7,6 @@ Chunk::Chunk(glm::vec3 position, int id)
     mat = glm::mat4(1.0f);
     Position = position;
     size = 0;
-    VAO = 0;
-    VBO = 0;
-    UVB = 0;
-    TOB = 0;
-    NBO = 0;
     rendered = false;
     translate(Position);
     initCubeData();
@@ -60,47 +55,9 @@ void Chunk::translate(glm::vec3 v)
     mat = glm::translate(mat, v);
 }
 
-void Chunk::loadVBO()
-{
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &UVB);
-    glGenBuffers(1, &TOB);
-    glGenBuffers(1, &NBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(glm::vec3), &Vertices[0], GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, UVB);
-    glBufferData(GL_ARRAY_BUFFER, UV.size() * sizeof(glm::vec2), &UV[0], GL_STATIC_DRAW);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, TOB);
-    glBufferData(GL_ARRAY_BUFFER, texCoord.size() * sizeof(glm::vec2), &texCoord[0], GL_STATIC_DRAW);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, NBO);
-    glBufferData(GL_ARRAY_BUFFER, Normal.size() * sizeof(glm::vec3), &Normal[0], GL_STATIC_DRAW);
-
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(3);
-}
-
 Chunk::~Chunk()
 {
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &UVB);
-    glDeleteBuffers(1, &TOB);
-    glDeleteBuffers(1, &NBO);
-    glDeleteVertexArrays(1, &VAO);
+
     Vertices.clear();
     Vertices.shrink_to_fit();
     UV.clear();
