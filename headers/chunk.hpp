@@ -9,6 +9,7 @@ class Chunk
 {
 public:
 	int Id;
+	bool rendered;
 	glm::vec3 Position;
 	glm::mat4x4 mat;
 	Cube ***CubeData;

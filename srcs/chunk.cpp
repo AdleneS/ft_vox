@@ -12,6 +12,7 @@ Chunk::Chunk(glm::vec3 position, int id)
     UVB = 0;
     TOB = 0;
     NBO = 0;
+    rendered = false;
     translate(Position);
     initCubeData();
     memCubeData();

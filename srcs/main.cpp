@@ -62,8 +62,8 @@ int createExpendedChunkX(t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHa
 		//const std::lock_guard<std::mutex> lock(mtx);
 		chunks->emplace(PosChunk(glm::vec3(x, 0, z), new Chunk(createCube(vox, o, glm::vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed))));
 		//chunks->find(glm::vec3(x, 0, z))->second->loadVBO();
-		vox->chunkCount++;
-		vox->chunkNbX++;
+		//vox->chunkCount++;
+		//vox->chunkNbX++;
 		mtx.unlock();
 		return 1;
 	}
@@ -85,8 +85,31 @@ void update(std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, t_vo
 	//std::thread th7(createChunk, vox, &chunks, VIEW_DISTANCE / 2, VIEW_DISTANCE, -VIEW_DISTANCE, 0, frustum);
 	while (1)
 	{
-		//createChunk(vox, chunks, -16, 0, -16, 16);
 		createChunk(vox, chunks, start_x, end_x, start_z, end_z);
+	}
+}
+
+void loadAndDelete(std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks)
+{
+	while (1)
+	{
+		for (auto it = chunks->begin(); it != chunks->end(); ++it)
+		{
+			if (it->second->rendered)
+			{
+				printf("CLEAN UP\n");
+				mtx.lock();
+				it->second->Vertices.clear();
+				it->second->Vertices.shrink_to_fit();
+				it->second->UV.clear();
+				it->second->UV.shrink_to_fit();
+				it->second->texCoord.clear();
+				it->second->texCoord.shrink_to_fit();
+				it->second->Normal.clear();
+				it->second->Normal.shrink_to_fit();
+				mtx.unlock();
+			}
+		}
 	}
 }
 
@@ -104,7 +127,7 @@ int main(void)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "ft_vox", NULL, NULL);
@@ -139,14 +162,13 @@ int main(void)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//std::thread update_thread(update, &chunks, vox);
 	//std::thread update_thread2(update2, &chunks, vox);
-	unsigned num_cpus = std::thread::hardware_concurrency();
-	std::cout << "Launching " << num_cpus << " threads\n";
-
 	std::vector<std::thread> threads(4);
-	threads[0] = std::thread(update, &chunks, vox, -16, 0, -16, 0);
-	threads[1] = std::thread(update, &chunks, vox, 0, 16, 0, 16);
-	threads[2] = std::thread(update, &chunks, vox, -16, 0, 0, 16);
-	threads[3] = std::thread(update, &chunks, vox, 0, 16, -16, 16);
+	threads[0] = std::thread(update, &chunks, vox, -VIEW_DISTANCE, 0, -VIEW_DISTANCE, 0);
+	threads[1] = std::thread(update, &chunks, vox, 0, VIEW_DISTANCE, 0, VIEW_DISTANCE);
+	threads[2] = std::thread(update, &chunks, vox, -VIEW_DISTANCE, 0, 0, VIEW_DISTANCE);
+	threads[3] = std::thread(update, &chunks, vox, 0, VIEW_DISTANCE, -VIEW_DISTANCE, 0);
+
+	std::thread tg(loadAndDelete, &chunks);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -161,7 +183,7 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, VIEW_DISTANCE * VIEW_DISTANCE);
 		shader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
@@ -425,25 +447,25 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<glm::vec3, Chunk
 	{
 		//std::vector<std::pair<glm::vec3, Chunk *>> elems(chunks->begin(), chunks->end());
 		//std::sort(elems.begin(), elems.end(), comp);
-		//glfwPollEvents();
 
 		for (auto it = chunks->begin(); it != chunks->end(); ++it)
 		{
 			if (it->second->VAO == 0)
 			{
 				it->second->loadVBO();
-				it->second->Vertices.clear();
-				it->second->Vertices.shrink_to_fit();
-				it->second->UV.clear();
-				it->second->UV.shrink_to_fit();
-				it->second->texCoord.clear();
-				it->second->texCoord.shrink_to_fit();
-				it->second->Normal.clear();
-				it->second->Normal.shrink_to_fit();
+				it->second->rendered = true;
+				//it->second->Vertices.clear();
+				//it->second->Vertices.shrink_to_fit();
+				//it->second->UV.clear();
+				//it->second->UV.shrink_to_fit();
+				//it->second->texCoord.clear();
+				//it->second->texCoord.shrink_to_fit();
+				//it->second->Normal.clear();
+				//it->second->Normal.shrink_to_fit();
 			}
 			int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + 8)), 2) + pow((camera.Position.z - (it->second->Position.z + 8)), 2));
 
-			if (distanceFromChunk > VIEW_DISTANCE * CHUNK_SIZE_X * 1.4)
+			if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 1.4)
 			{
 				vec.emplace_back(it->first);
 				continue;
@@ -479,7 +501,8 @@ void createChunk(t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFuncti
 	{
 		for (int z = (start_z) + (int)((int)camera.Position.z / CHUNK_SIZE_Z); z < new_view_distance_z; z++)
 		{
-			if (frustum.IsInside(glm::vec3(x * CHUNK_SIZE_X, 256, z * CHUNK_SIZE_Z)) == Frustum::Partially)
+			Frustum::Visibility visiblity = frustum.IsInside(glm::vec3(x * CHUNK_SIZE_X, 256, z * CHUNK_SIZE_Z));
+			if (visiblity == Frustum::Partially || visiblity == Frustum::Completly)
 			{
 				if (createExpendedChunkX(vox, chunks, x, z, o))
 					; //return;
@@ -493,7 +516,6 @@ void processInput(GLFWwindow *window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
