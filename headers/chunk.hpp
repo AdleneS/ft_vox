@@ -5,20 +5,16 @@
 #include "../glm/glm.hpp"
 #include "../glm/gtc/matrix_transform.hpp"
 #include "cube.hpp"
+#include "const.hpp"
+
 class Chunk
 {
 public:
 	int Id;
 	bool rendered;
 	glm::vec3 Position;
-	glm::mat4x4 mat;
-	Cube ***CubeData;
-	std::vector<glm::vec3> Vertices;
-	std::vector<glm::vec3> Normal;
-	std::vector<glm::vec2> texCoord;
-	std::vector<glm::vec2> UV;
-	int size;
 	int maxHeight;
+	Cube ***CubeData;
 
 	Chunk(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), int id = -1);
 	~Chunk();

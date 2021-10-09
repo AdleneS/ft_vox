@@ -13,6 +13,7 @@ float lastFrame = 0.0f;
 
 std::mutex mtx;
 std::mutex mtxb;
+std::mutex mtxc;
 
 static void error_callback(int error, const char *description)
 {
@@ -54,7 +55,7 @@ void fps(GLFWwindow *window)
 	glfwSetWindowTitle(window, std::strcat(title, buffer));
 }
 
-int createExpendedChunkX(t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, int x, int z, int o)
+int createExpendedChunkX(t_vox *vox, ChunkMap *chunks, int x, int z, int o)
 {
 	mtx.lock();
 	if (chunks->find(glm::vec3(x, 0, z)) == chunks->end())
@@ -71,22 +72,52 @@ int createExpendedChunkX(t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHa
 	return 0;
 }
 
-void update(std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, t_vox *vox, int start_x, int end_x, int start_z, int end_z)
+void chunkThread(ChunkMap *chunks, t_vox *vox, int start_x, int end_x, int start_z, int end_z)
 {
-	//std::thread th();
-	//std::thread th1(createChunk, vox, &chunks, -VIEW_DISTANCE / 2, 0, -VIEW_DISTANCE, 0, frustum);
-	//
-	//std::thread th2(createChunk, vox, &chunks, -VIEW_DISTANCE, -VIEW_DISTANCE / 2, 0, VIEW_DISTANCE, frustum);
-	//std::thread th3(createChunk, vox, &chunks, -VIEW_DISTANCE / 2, 0, 0, VIEW_DISTANCE, frustum);
-	//
-	//std::thread th4(createChunk, vox, &chunks, 0, VIEW_DISTANCE / 2, -VIEW_DISTANCE, VIEW_DISTANCE, frustum);
-	//std::thread th5(createChunk, vox, &chunks, VIEW_DISTANCE / 2, VIEW_DISTANCE, 0, VIEW_DISTANCE, frustum);
-	//
-	//std::thread th6(createChunk, vox, &chunks, 0, VIEW_DISTANCE / 2, -VIEW_DISTANCE, 0, frustum);
-	//std::thread th7(createChunk, vox, &chunks, VIEW_DISTANCE / 2, VIEW_DISTANCE, -VIEW_DISTANCE, 0, frustum);
 	while (1)
 	{
 		createChunk(vox, chunks, start_x, end_x, start_z, end_z);
+	}
+}
+
+void meshThread(ChunkMap *chunks, MeshMap *mesh)
+{
+	while (1)
+	{
+		std::vector<glm::vec3> vec;
+		for (auto &&key : vec)
+		{
+			mtx.lock();
+			mtxc.lock();
+			//printf("%d\n", chunks->size());
+			delete (chunks->find(key)->second);
+			//chunks->find(key)->second->freeCubeData();
+			chunks->erase(key);
+			delete (mesh->find(key)->second);
+			mesh->erase(key);
+			mtxc.lock();
+			mtx.unlock();
+		}
+		mtx.lock();
+		ChunkMap chunkTmp = *chunks;
+		mtx.unlock();
+		for (auto c = chunkTmp.begin(); c != chunkTmp.end(); ++c)
+		{
+			mtxc.lock();
+			if (mesh->find(c->first) == mesh->end())
+			{
+				mesh->emplace(PosMesh((c->first), new Mesh(createMesh(*c->second))));
+				mtxc.unlock();
+				break;
+			}
+			else if (mesh->find(c->first)->second->rendered == true)
+			{
+				vec.emplace_back(c->first);
+			}
+			mtxc.unlock();
+		}
+		mtxc.unlock();
+		//chunk.freeCubeData();
 	}
 }
 
@@ -94,9 +125,10 @@ int main(void)
 {
 
 	GLFWwindow *window;
-	std::unordered_map<glm::vec3, Chunk *, MyHashFunction> chunks;
-	std::unordered_map<glm::vec3, Buffer *, MyHashFunction> buffer;
-	//std::unordered_map<glm::vec3, Mesh *, MyHashFunction> buffer;
+	ChunkMap chunks;
+	BufferMap buffer;
+	MeshMap mesh;
+
 	t_vox *vox = init();
 	glfwSetErrorCallback(error_callback);
 
@@ -143,8 +175,8 @@ int main(void)
 	//std::thread update_thread2(update2, &chunks, vox);
 	std::vector<std::thread> threads(4);
 	//threads[0] = std::thread(update, &chunks, vox, -VIEW_DISTANCE, VIEW_DISTANCE, -VIEW_DISTANCE, VIEW_DISTANCE);
-	threads[0] = std::thread(update, &chunks, vox, -VIEW_DISTANCE, VIEW_DISTANCE, -VIEW_DISTANCE, VIEW_DISTANCE);
-	//threads[1] = std::thread(update, &chunks, vox, 0, VIEW_DISTANCE, 0, VIEW_DISTANCE);
+	threads[0] = std::thread(chunkThread, &chunks, vox, -VIEW_DISTANCE, VIEW_DISTANCE, -VIEW_DISTANCE, VIEW_DISTANCE);
+	threads[1] = std::thread(meshThread, &chunks, &mesh);
 	//threads[2] = std::thread(update, &chunks, vox, -VIEW_DISTANCE, 0, 0, VIEW_DISTANCE);
 	//threads[3] = std::thread(update, &chunks, vox, 0, VIEW_DISTANCE, -VIEW_DISTANCE, 0);
 
@@ -161,14 +193,14 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, VIEW_DISTANCE * VIEW_DISTANCE);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, VIEW_DISTANCE * VIEW_DISTANCE + CHUNK_SIZE_X * 4);
 		shader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 		frustum.Transform(projection, view);
 		shader.setVec3("lightPos", glm::vec3(0.7, 0.2, 0.5));
 		shader.setVec3("viewPos", camera.Position);
-		displayChunk(shader, vox, &chunks, &buffer);
+		displayChunk(&buffer, &mesh, shader);
 		displayVAO(&buffer, shader);
 
 		glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -194,9 +226,9 @@ int main(void)
 	exit(EXIT_SUCCESS);
 }
 
-void createMesh(Chunk *chunk)
+Mesh createMesh(Chunk chunk)
 {
-	Mesh mesh;
+	Mesh mesh(chunk.Position);
 	glm::vec2 tex = glm::vec2(0, 0);
 	for (size_t x = 0; x < CHUNK_SIZE_X; x++)
 	{
@@ -204,39 +236,41 @@ void createMesh(Chunk *chunk)
 		{
 			for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
 			{
-				if (chunk->CubeData[x][y][z].isEmpty)
+				if (chunk.CubeData[x][y][z].isEmpty)
 					continue;
 				for (int i = 0; i < 6; i++)
 				{
-					tex = chunk->CubeData[x][y][z].texCoord;
+					tex = chunk.CubeData[x][y][z].texCoord;
 					if (tex.x == 0 && tex.y == 0 && i == 4)
 						tex = glm::vec2(1, 0);
 					if (tex.x == 0 && tex.y == 0 && i == 5)
 						tex = glm::vec2(2, 0);
-					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk->CubeData) || chunk->CubeData[x][y][z].texCoord == glm::vec2(2, 3))
+					if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk.CubeData) || chunk.CubeData[x][y][z].texCoord == glm::vec2(2, 3))
 					{
 						for (size_t j = 0; j < 18; j += 3)
 						{
-							chunk->Vertices.push_back(glm::vec3(VERTICES[j + (i * 18)] + chunk->CubeData[x][y][z].Position.x,
-																VERTICES[j + 1 + (i * 18)] + chunk->CubeData[x][y][z].Position.y,
-																VERTICES[j + 2 + (i * 18)] + chunk->CubeData[x][y][z].Position.z));
+							mesh.Vertices.push_back(glm::vec3(VERTICES[j + (i * 18)] + chunk.CubeData[x][y][z].Position.x,
+															  VERTICES[j + 1 + (i * 18)] + chunk.CubeData[x][y][z].Position.y,
+															  VERTICES[j + 2 + (i * 18)] + chunk.CubeData[x][y][z].Position.z));
 
-							chunk->Normal.push_back(glm::vec3(NORMAL[j + (i * 18)],
-															  NORMAL[j + 1 + (i * 18)],
-															  NORMAL[j + 2 + (i * 18)]));
-							chunk->texCoord.push_back(tex);
-							chunk->size += 3;
+							mesh.Normal.push_back(glm::vec3(NORMAL[j + (i * 18)],
+															NORMAL[j + 1 + (i * 18)],
+															NORMAL[j + 2 + (i * 18)]));
+							mesh.texCoord.push_back(tex);
+							mesh.size += 3;
 						}
 						for (size_t k = 0; k < 12; k += 2)
 						{
-							chunk->UV.push_back(glm::vec2(UV[k + (i * 12)],
-														  UV[k + 1 + (i * 12)]));
+							mesh.UV.push_back(glm::vec2(UV[k + (i * 12)],
+														UV[k + 1 + (i * 12)]));
 						}
 					}
 				}
 			}
 		}
 	}
+	mesh.maxHeight = chunk.maxHeight;
+	return mesh;
 }
 
 float heightSimplex(float n, float a, float freq, int x, int z, float seed, glm::vec3 offsets)
@@ -392,8 +426,6 @@ Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed)
 			}
 		}
 	}
-	createMesh(&chunk);
-	chunk.freeCubeData();
 	return chunk;
 }
 
@@ -410,45 +442,24 @@ glm::vec2 selectTex(float n, float b)
 	return glm::vec2(0, 0);
 }
 
-bool comp(const std::pair<glm::vec3, Chunk *> &c1, const std::pair<glm::vec3, Chunk *> &c2)
+//bool comp(const std::pair<glm::vec3, Chunk *> &c1, const std::pair<glm::vec3, Chunk *> &c2)
+//{
+//	int distanceFromChunk1 = sqrt(pow((camera.Position.x - (c1.second->Position.x + 8)), 2) + pow((camera.Position.z - (c1.second->Position.z + 8)), 2));
+//	int distanceFromChunk2 = sqrt(pow((camera.Position.x - (c2.second->Position.x + 8)), 2) + pow((camera.Position.z - (c2.second->Position.z + 8)), 2));
+//	return distanceFromChunk1 < distanceFromChunk2;
+//}
+
+void displayChunk(BufferMap *buffer, MeshMap *mesh, Shader shader)
 {
-	int distanceFromChunk1 = sqrt(pow((camera.Position.x - (c1.second->Position.x + 8)), 2) + pow((camera.Position.z - (c1.second->Position.z + 8)), 2));
-	int distanceFromChunk2 = sqrt(pow((camera.Position.x - (c2.second->Position.x + 8)), 2) + pow((camera.Position.z - (c2.second->Position.z + 8)), 2));
-	return distanceFromChunk1 < distanceFromChunk2;
-}
-
-struct displayVar_t
-{
-	GLuint vao;
-	glm::mat4x4 mat;
-	int size;
-	glm::vec3 pos;
-	int maxHeight;
-} displayVar_s;
-
-void displayChunk(Shader shader, t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, std::unordered_map<glm::vec3, Buffer *, MyHashFunction> *buffer)
-{
-	(void)vox;
-
-	std::vector<glm::vec3> vec;
-
-	std::vector<std::pair<glm::vec3, displayVar_t>> disVar;
 	int triNb = 0;
+	mtxc.lock();
+	MeshMap meshTmp = *mesh;
+	mtxc.unlock();
 
-	for (auto &&key : vec)
+	if (meshTmp.size() > 0)
 	{
-		mtx.lock();
-		delete (chunks->find(key)->second);
-		chunks->erase(key);
-		mtx.unlock();
-	}
-	if (chunks->size() > 0)
-	{
-
-		//std::vector<std::pair<glm::vec3, Chunk *>> elems(chunks->begin(), chunks->end());
-		//std::sort(elems.begin(), elems.end(), comp);
-		mtx.lock();
-		for (auto it = chunks->begin(); it != chunks->end(); ++it)
+		//mtx.lock();
+		for (auto it = meshTmp.begin(); it != meshTmp.end(); ++it)
 		{
 			if (it->second->rendered == false)
 			{
@@ -460,34 +471,30 @@ void displayChunk(Shader shader, t_vox *vox, std::unordered_map<glm::vec3, Chunk
 				buffer->find(it->first)->second->maxHeight = it->second->maxHeight;
 				buffer->find(it->first)->second->size = it->second->size;
 				buffer->find(it->first)->second->Position = it->second->Position;
-				//mtxb.unlock();
-				it->second->rendered = true;
-				it->second->Vertices.clear();
-				it->second->Vertices.shrink_to_fit();
-				it->second->UV.clear();
-				it->second->UV.shrink_to_fit();
-				it->second->texCoord.clear();
-				it->second->texCoord.shrink_to_fit();
-				it->second->Normal.clear();
-				it->second->Normal.shrink_to_fit();
+				mtxc.lock();
+				mesh->find(it->first)->second->rendered = true;
+				mesh->find(it->first)->second->Vertices.clear();
+				mesh->find(it->first)->second->Vertices.shrink_to_fit();
+				mesh->find(it->first)->second->UV.clear();
+				mesh->find(it->first)->second->UV.shrink_to_fit();
+				mesh->find(it->first)->second->texCoord.clear();
+				mesh->find(it->first)->second->texCoord.shrink_to_fit();
+				mesh->find(it->first)->second->Normal.clear();
+				mesh->find(it->first)->second->Normal.shrink_to_fit();
+				mtxc.unlock();
+				return;
 			}
 		}
-		mtx.unlock();
-		//mtx.lock();
-		//for (auto it = elems.begin(); it != elems.end(); ++it)
-		//{
-		//	disVar.push_back(std::make_pair(it->first, (displayVar_t){it->second.VAO, it->second->mat, it->second->size, it->second->Position, it->second->maxHeight}));
-		//}
 		//mtx.unlock();
-
 		//printf("%d\n", triNb);
 	}
 }
 
-void displayVAO(std::unordered_map<glm::vec3, Buffer *, MyHashFunction> *buffer, Shader shader)
+void displayVAO(BufferMap *buffer, Shader shader)
 {
 	std::vector<glm::vec3> vec;
-
+	//std::vector<std::pair<glm::vec3, Chunk *>> elems(chunks->begin(), chunks->end());
+	//std::sort(elems.begin(), elems.end(), comp);
 	for (auto &&key : vec)
 	{
 		mtxb.lock();
@@ -522,7 +529,7 @@ void displayVAO(std::unordered_map<glm::vec3, Buffer *, MyHashFunction> *buffer,
 	mtxb.unlock();
 }
 
-void createChunk(t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z)
+void createChunk(t_vox *vox, ChunkMap *chunks, int start_x, int end_x, int start_z, int end_z)
 {
 	int new_view_distance_x = ((end_x) + (int)((int)camera.Position.x / CHUNK_SIZE_X));
 	int new_view_distance_z = ((end_z) + (int)((int)camera.Position.z / CHUNK_SIZE_Z));

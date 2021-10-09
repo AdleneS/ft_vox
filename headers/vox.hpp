@@ -37,7 +37,10 @@
 
 typedef std::pair<glm::vec3, Chunk *> PosChunk;
 typedef std::pair<glm::vec3, Buffer *> PosBuffer;
-
+typedef std::pair<glm::vec3, Mesh *> PosMesh;
+typedef std::unordered_map<glm::vec3, Chunk *, MyHashFunction> ChunkMap;
+typedef std::unordered_map<glm::vec3, Buffer *, MyHashFunction> BufferMap;
+typedef std::unordered_map<glm::vec3, Mesh *, MyHashFunction> MeshMap;
 typedef struct s_vox
 {
     unsigned int chunkNbX;
@@ -57,9 +60,9 @@ GLuint load_texture(const char *imagePath);
 
 Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
 void createChunk(t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z);
-void createMesh(Chunk *chunk);
-void displayChunk(Shader shader, t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, std::unordered_map<glm::vec3, Buffer *, MyHashFunction> *buffer);
-void displayVAO(std::unordered_map<glm::vec3, Buffer *, MyHashFunction> *buffer, Shader shader);
+Mesh createMesh(Chunk chunk);
+void displayChunk(BufferMap *buffer, MeshMap *mesh, Shader shader);
+void displayVAO(BufferMap *buffer, Shader shader);
 
 glm::vec2 selectTex(float n, float b);
 

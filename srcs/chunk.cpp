@@ -1,14 +1,10 @@
 #include "../headers/chunk.hpp"
-#include "../headers/const.hpp"
 
 Chunk::Chunk(glm::vec3 position, int id)
 {
     Id = id;
-    mat = glm::mat4(1.0f);
     Position = position;
-    size = 0;
     rendered = false;
-    translate(Position);
     initCubeData();
     memCubeData();
 }
@@ -50,19 +46,8 @@ void Chunk::freeCubeData()
     }
     free(CubeData);
 }
-void Chunk::translate(glm::vec3 v)
-{
-    mat = glm::translate(mat, v);
-}
 
 Chunk::~Chunk()
 {
-    Vertices.clear();
-    Vertices.shrink_to_fit();
-    UV.clear();
-    UV.shrink_to_fit();
-    texCoord.clear();
-    texCoord.shrink_to_fit();
-    Normal.clear();
-    Normal.shrink_to_fit();
+    freeCubeData();
 }

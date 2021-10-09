@@ -1,6 +1,6 @@
 #include "../gl3w/include/GL/gl3w.h"
 #include "../glm/glm.hpp"
-#include "chunk.hpp"
+#include "mesh.hpp"
 #include <cstdio>
 class Buffer
 {
@@ -18,5 +18,5 @@ public:
     int maxHeight;
     Buffer();
     ~Buffer();
-    void loadVBO(Chunk chunk);
+    void loadVBO(Mesh mesh);
 };
