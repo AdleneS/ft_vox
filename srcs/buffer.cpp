@@ -20,8 +20,8 @@ Buffer::~Buffer()
 
 void Buffer::loadVBO(Chunk chunk)
 {
-    printf("%f\n", chunk.Position.x);
-    /*glGenVertexArrays(1, &VAO);
+    //printf("%d\n", chunk.Vertices.size());
+    glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &UVB);
@@ -50,5 +50,5 @@ void Buffer::loadVBO(Chunk chunk)
     glBufferData(GL_ARRAY_BUFFER, chunk.Normal.size() * sizeof(glm::vec3), &chunk.Normal[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(3);*/
+    glEnableVertexAttribArray(3);
 }

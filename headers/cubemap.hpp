@@ -18,12 +18,12 @@ public:
     unsigned int skyboxVAO;
     unsigned int skyboxVBO;
     std::vector<std::string> faces{
-        "../resources/cubemap/right.jpg",
-        "../resources/cubemap/left.jpg",
-        "../resources/cubemap/top.jpg",
-        "../resources/cubemap/bottom.jpg",
-        "../resources/cubemap/front.jpg",
-        "../resources/cubemap/back.jpg"};
+        "./resources/cubemap/right.jpg",
+        "./resources/cubemap/left.jpg",
+        "./resources/cubemap/top.jpg",
+        "./resources/cubemap/bottom.jpg",
+        "./resources/cubemap/front.jpg",
+        "./resources/cubemap/back.jpg"};
     Cubemap();
     ~Cubemap();
 

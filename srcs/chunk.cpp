@@ -57,7 +57,6 @@ void Chunk::translate(glm::vec3 v)
 
 Chunk::~Chunk()
 {
-
     Vertices.clear();
     Vertices.shrink_to_fit();
     UV.clear();

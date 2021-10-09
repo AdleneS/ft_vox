@@ -1,6 +1,7 @@
 #include "../gl3w/include/GL/gl3w.h"
 #include "../glm/glm.hpp"
 #include "chunk.hpp"
+#include <cstdio>
 class Buffer
 {
 private:
