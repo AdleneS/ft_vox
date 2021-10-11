@@ -6,7 +6,7 @@
 #include "../glm/gtc/matrix_transform.hpp"
 #include "cube.hpp"
 #include "const.hpp"
-
+#include <cstdio>
 class Chunk
 {
 public:

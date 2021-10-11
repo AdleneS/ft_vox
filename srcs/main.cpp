@@ -3,7 +3,7 @@
 
 Camera camera(glm::vec3(0.0f, 128.0f, 0.0f));
 Frustum frustum;
-std::unordered_map<glm::vec3, unsigned int, MyHashFunction> renderedKeys;
+std::unordered_map<glm::vec3, int, MyHashFunction> renderedKeys;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -64,12 +64,13 @@ int createExpendedChunkX(t_vox *vox, ChunkMap *chunks, int x, int z, int o)
 	if (renderedKeys.find(glm::vec3(x, 0, z)) == renderedKeys.end() && chunks->find(glm::vec3(x, 0, z)) == chunks->end())
 	{
 		mtxd.unlock();
-		chunks->insert(PosChunk(glm::vec3(x, 0, z), new Chunk(createCube(vox, o, glm::vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed))));
+		//printf("create\n");
+		chunks->emplace(PosChunk(glm::vec3(x, 0, z), new Chunk(createCube(vox, o, glm::vec3(x * CHUNK_SIZE_X, 0, z * CHUNK_SIZE_Z), vox->seed))));
 		mtx.unlock();
 		return 1;
 	}
-	mtxd.unlock();
 	mtx.unlock();
+	mtxd.unlock();
 	return 0;
 }
 void chunkThread(ChunkMap *chunks, t_vox *vox, int start_x, int end_x, int start_z, int end_z)
@@ -83,7 +84,7 @@ void chunkThread(ChunkMap *chunks, t_vox *vox, int start_x, int end_x, int start
 void meshThread(ChunkMap *chunks, MeshMap *mesh)
 {
 	while (1)
-	{
+	{ //
 		std::vector<glm::vec3> vec;
 		mtx.lock();
 		ChunkMap chunkTmp = *chunks;
@@ -91,37 +92,34 @@ void meshThread(ChunkMap *chunks, MeshMap *mesh)
 		for (auto c = chunkTmp.begin(); c != chunkTmp.end(); ++c)
 		{
 			mtxc.lock();
-			if (mesh->find(c->first) == mesh->end())
+			mtxd.lock();
+			if (renderedKeys.find(c->first) == renderedKeys.end() && mesh->find(c->first) == mesh->end())
 			{
 				mesh->emplace(PosMesh((c->first), new Mesh(createMesh(*c->second))));
+				mtxd.unlock();
 				mtxc.unlock();
 				break;
 			}
-			//else if (mesh->find(c->first)->second->rendered == true)
-			//{
-			//	vec.emplace_back(c->first);
-			//	//break;
-			//}
+			mtxd.unlock();
 			mtxc.unlock();
 		}
 		mtxc.unlock();
 		mtxd.lock();
-		for (auto &&key : renderedKeys)
+		for (auto it = renderedKeys.begin(); it != renderedKeys.end(); ++it)
 		{
-			//printf("%d\n", chunks->find(key)->second->Id);
-			mtx.lock();
-			mtxc.lock();
-			//printf("%d\n", chunks->size());
-			//delete (chunks->find(key)->second);
-			//chunks->find(key)->second->freeCubeData();
-			chunks->erase(key.first);
-			//delete (mesh->find(key)->second);
-			mesh->erase(key.first);
-			mtxc.unlock();
-			mtx.unlock();
-			if (key.second)
-				renderedKeys.erase(key.first);
-			//break;
+			//mtx.lock();
+			//chunks->erase(key.first);
+			//mtx.unlock();
+			if (it->second)
+				vec.emplace_back(it->first);
+		}
+		mtxd.unlock();
+		for (auto &&key : vec)
+		{
+			printf("lol\n");
+			mtxd.lock();
+			renderedKeys.erase(key);
+			mtxd.unlock();
 		}
 		mtxd.unlock();
 	}
@@ -180,11 +178,8 @@ int main(void)
 	//std::thread update_thread(update, &chunks, vox);
 	//std::thread update_thread2(update2, &chunks, vox);
 	std::vector<std::thread> threads(2);
-	//threads[0] = std::thread(update, &chunks, vox, -VIEW_DISTANCE, VIEW_DISTANCE, -VIEW_DISTANCE, VIEW_DISTANCE);
 	threads[0] = std::thread(chunkThread, &chunks, vox, -VIEW_DISTANCE, VIEW_DISTANCE, -VIEW_DISTANCE, VIEW_DISTANCE);
 	threads[1] = std::thread(meshThread, &chunks, &mesh);
-	//threads[2] = std::thread(update, &chunks, vox, -VIEW_DISTANCE, 0, 0, VIEW_DISTANCE);
-	//threads[3] = std::thread(update, &chunks, vox, 0, VIEW_DISTANCE, -VIEW_DISTANCE, 0);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -206,7 +201,10 @@ int main(void)
 		frustum.Transform(projection, view);
 		shader.setVec3("lightPos", glm::vec3(0.7, 0.2, 0.5));
 		shader.setVec3("viewPos", camera.Position);
+		mtxc.lock();
+		//printf("%d\n", mesh.size());
 		displayChunk(&buffer, &mesh, shader);
+		mtxc.unlock();
 		displayVAO(&buffer, shader);
 
 		glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -458,9 +456,8 @@ glm::vec2 selectTex(float n, float b)
 void displayChunk(BufferMap *buffer, MeshMap *mesh, Shader shader)
 {
 	int triNb = 0;
-	mtxc.lock();
+	//mtxc.lock();
 	MeshMap meshTmp = *mesh;
-	mtxc.unlock();
 
 	if (meshTmp.size() > 0)
 	{
@@ -468,30 +465,29 @@ void displayChunk(BufferMap *buffer, MeshMap *mesh, Shader shader)
 		{
 			if (it->second->rendered == false)
 			{
-				buffer->insert(PosBuffer(it->first, new Buffer()));
-				buffer->find(it->first)->second->loadVBO(*it->second);
-				buffer->find(it->first)->second->mat = it->second->mat;
-				buffer->find(it->first)->second->maxHeight = it->second->maxHeight;
-				buffer->find(it->first)->second->size = it->second->size;
-				buffer->find(it->first)->second->Position = it->second->Position;
-				mtxc.lock();
-				mesh->find(it->first)->second->rendered = true;
-				mesh->find(it->first)->second->Vertices.clear();
-				mesh->find(it->first)->second->Vertices.shrink_to_fit();
-				mesh->find(it->first)->second->UV.clear();
-				mesh->find(it->first)->second->UV.shrink_to_fit();
-				mesh->find(it->first)->second->texCoord.clear();
-				mesh->find(it->first)->second->texCoord.shrink_to_fit();
-				mesh->find(it->first)->second->Normal.clear();
-				mesh->find(it->first)->second->Normal.shrink_to_fit();
-				mtxc.unlock();
+				buffer->emplace(PosBuffer(it->first, new Buffer()));
+				buffer->at(it->first)->loadVBO(*it->second);
+				buffer->at(it->first)->mat = it->second->mat;
+				buffer->at(it->first)->maxHeight = it->second->maxHeight;
+				buffer->at(it->first)->size = it->second->size;
+				buffer->at(it->first)->Position = it->second->Position;
+				//meshTmp.at(it->first)->rendered = true;
+				mesh->at(it->first)->rendered = true;
+				mesh->at(it->first)->Vertices.clear();
+				mesh->at(it->first)->Vertices.shrink_to_fit();
+				mesh->at(it->first)->UV.clear();
+				mesh->at(it->first)->UV.shrink_to_fit();
+				mesh->at(it->first)->texCoord.clear();
+				mesh->at(it->first)->texCoord.shrink_to_fit();
+				mesh->at(it->first)->Normal.clear();
+				mesh->at(it->first)->Normal.shrink_to_fit();
+				mesh->erase(it->first);
 				mtxd.lock();
-				renderedKeys.insert(PosRendered(it->first, 0));
+				renderedKeys.emplace(PosRendered(it->first, 0));
 				mtxd.unlock();
 				return;
 			}
 		}
-		//printf("%d\n", triNb);
 	}
 }
 
@@ -522,6 +518,7 @@ void displayVAO(BufferMap *buffer, Shader shader)
 			//triNb += it->second->size / 3 / 3;
 		}
 	}
+	//printf("%d\n", triNb);
 	for (auto &&key : vec)
 	{
 		//mtxb.lock();
