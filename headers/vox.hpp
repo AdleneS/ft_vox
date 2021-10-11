@@ -38,6 +38,7 @@
 typedef std::pair<glm::vec3, Chunk *> PosChunk;
 typedef std::pair<glm::vec3, Buffer *> PosBuffer;
 typedef std::pair<glm::vec3, Mesh *> PosMesh;
+typedef std::pair<glm::vec3, unsigned int> PosRendered;
 typedef std::unordered_map<glm::vec3, Chunk *, MyHashFunction> ChunkMap;
 typedef std::unordered_map<glm::vec3, Buffer *, MyHashFunction> BufferMap;
 typedef std::unordered_map<glm::vec3, Mesh *, MyHashFunction> MeshMap;

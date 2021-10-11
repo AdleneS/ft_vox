@@ -94,6 +94,10 @@
         "xstddef": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "*.tcc": "cpp",
+        "codecvt": "cpp",
+        "memory_resource": "cpp",
+        "cinttypes": "cpp"
     }
 }
