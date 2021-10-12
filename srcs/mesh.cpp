@@ -8,18 +8,17 @@ Mesh::Mesh(glm::vec3 position)
     rendered = false;
     translate(Position);
 }
-//Mesh::~Mesh()
-//{
-//    printf("DELETE\n");
-//    //Vertices.clear();
-//    //Vertices.shrink_to_fit();
-//    //UV.clear();
-//    //UV.shrink_to_fit();
-//    //texCoord.clear();
-//    //texCoord.shrink_to_fit();
-//    //Normal.clear();
-//    //Normal.shrink_to_fit();
-//}
+Mesh::~Mesh()
+{
+    Vertices.clear();
+    Vertices.shrink_to_fit();
+    UV.clear();
+    UV.shrink_to_fit();
+    texCoord.clear();
+    texCoord.shrink_to_fit();
+    Normal.clear();
+    Normal.shrink_to_fit();
+}
 void Mesh::translate(glm::vec3 v)
 {
     mat = glm::translate(mat, v);

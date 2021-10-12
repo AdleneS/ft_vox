@@ -61,6 +61,7 @@ int createExpendedChunkX(t_vox *vox, ChunkMap *chunks, int x, int z, int o)
 	mtxd.lock();
 	//printf("%d\n", renderedKeys.size());
 	mtx.lock();
+	//printf("%d\n", chunks->size());
 	if (renderedKeys.find(glm::vec3(x, 0, z)) == renderedKeys.end() && chunks->find(glm::vec3(x, 0, z)) == chunks->end())
 	{
 		mtxd.unlock();
@@ -84,44 +85,25 @@ void chunkThread(ChunkMap *chunks, t_vox *vox, int start_x, int end_x, int start
 void meshThread(ChunkMap *chunks, MeshMap *mesh)
 {
 	while (1)
-	{ //
+	{
 		std::vector<glm::vec3> vec;
 		mtx.lock();
-		ChunkMap chunkTmp = *chunks;
+		auto c = chunks->begin();
+		auto f = chunks->end();
 		mtx.unlock();
-		for (auto c = chunkTmp.begin(); c != chunkTmp.end(); ++c)
+		//printf("%d\n", mesh->size());
+		if (c != f)
 		{
 			mtxc.lock();
-			mtxd.lock();
-			if (renderedKeys.find(c->first) == renderedKeys.end() && mesh->find(c->first) == mesh->end())
+			if (mesh->find(c->first) == mesh->end())
 			{
 				mesh->emplace(PosMesh((c->first), new Mesh(createMesh(*c->second))));
-				mtxd.unlock();
-				mtxc.unlock();
-				break;
+				mtx.lock();
+				chunks->erase(c);
+				mtx.unlock();
 			}
-			mtxd.unlock();
 			mtxc.unlock();
 		}
-		mtxc.unlock();
-		mtxd.lock();
-		for (auto it = renderedKeys.begin(); it != renderedKeys.end(); ++it)
-		{
-			//mtx.lock();
-			//chunks->erase(key.first);
-			//mtx.unlock();
-			if (it->second)
-				vec.emplace_back(it->first);
-		}
-		mtxd.unlock();
-		for (auto &&key : vec)
-		{
-			printf("lol\n");
-			mtxd.lock();
-			renderedKeys.erase(key);
-			mtxd.unlock();
-		}
-		mtxd.unlock();
 	}
 }
 
@@ -457,38 +439,41 @@ void displayChunk(BufferMap *buffer, MeshMap *mesh, Shader shader)
 {
 	int triNb = 0;
 	//mtxc.lock();
-	MeshMap meshTmp = *mesh;
+	auto begin = mesh->begin();
+	auto end = mesh->end();
+	float before = glfwGetTime();
 
-	if (meshTmp.size() > 0)
+	if (mesh->size() > 0)
 	{
-		for (auto it = meshTmp.begin(); it != meshTmp.end(); ++it)
-		{
-			if (it->second->rendered == false)
+		if (begin != end)
+			if (begin->second->rendered == false)
 			{
-				buffer->emplace(PosBuffer(it->first, new Buffer()));
-				buffer->at(it->first)->loadVBO(*it->second);
-				buffer->at(it->first)->mat = it->second->mat;
-				buffer->at(it->first)->maxHeight = it->second->maxHeight;
-				buffer->at(it->first)->size = it->second->size;
-				buffer->at(it->first)->Position = it->second->Position;
-				//meshTmp.at(it->first)->rendered = true;
-				mesh->at(it->first)->rendered = true;
-				mesh->at(it->first)->Vertices.clear();
-				mesh->at(it->first)->Vertices.shrink_to_fit();
-				mesh->at(it->first)->UV.clear();
-				mesh->at(it->first)->UV.shrink_to_fit();
-				mesh->at(it->first)->texCoord.clear();
-				mesh->at(it->first)->texCoord.shrink_to_fit();
-				mesh->at(it->first)->Normal.clear();
-				mesh->at(it->first)->Normal.shrink_to_fit();
-				mesh->erase(it->first);
+				buffer->emplace(PosBuffer(begin->first, new Buffer()));
+				buffer->at(begin->first)->loadVBO(*begin->second);
+				buffer->at(begin->first)->mat = begin->second->mat;
+				buffer->at(begin->first)->maxHeight = begin->second->maxHeight;
+				buffer->at(begin->first)->size = begin->second->size;
+				buffer->at(begin->first)->Position = begin->second->Position;
+				mesh->at(begin->first)->rendered = true;
+				mesh->at(begin->first)->Vertices.clear();
+				mesh->at(begin->first)->Vertices.shrink_to_fit();
+				mesh->at(begin->first)->UV.clear();
+				mesh->at(begin->first)->UV.shrink_to_fit();
+				mesh->at(begin->first)->texCoord.clear();
+				mesh->at(begin->first)->texCoord.shrink_to_fit();
+				mesh->at(begin->first)->Normal.clear();
+				mesh->at(begin->first)->Normal.shrink_to_fit();
+				mesh->erase(begin->first);
 				mtxd.lock();
-				renderedKeys.emplace(PosRendered(it->first, 0));
+				renderedKeys.emplace(PosRendered(begin->first, 0));
 				mtxd.unlock();
+				float after = glfwGetTime();
+				printf("%f\n", (after - before) * 100);
 				return;
 			}
-		}
 	}
+	float after = glfwGetTime();
+	printf("%f\n", (after - before) * 100);
 }
 
 void displayVAO(BufferMap *buffer, Shader shader)
@@ -525,7 +510,8 @@ void displayVAO(BufferMap *buffer, Shader shader)
 		delete (buffer->find(key)->second);
 		buffer->erase(key);
 		mtxd.lock();
-		renderedKeys.find(key)->second = 1;
+		renderedKeys.erase(key);
+		//renderedKeys.find(key)->second = 1;
 		mtxd.unlock();
 		//mtxb.unlock();
 	}

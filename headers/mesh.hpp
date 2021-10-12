@@ -47,7 +47,7 @@ public:
     int size;
     bool rendered;
     Mesh(glm::vec3 position);
-    //~Mesh();
+    ~Mesh();
     void translate(glm::vec3 v);
     int getCube(Cube neighbor, Cube current, int dir);
     int getNeighbor(int x, int y, int z, Direction dir, Cube ***cube);

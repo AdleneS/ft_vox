@@ -49,6 +49,5 @@ void Chunk::freeCubeData()
 
 Chunk::~Chunk()
 {
-    // printf("DELETE\n");
     freeCubeData();
 }
