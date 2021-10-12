@@ -17,13 +17,20 @@ public:
     unsigned int cubemapTexture;
     unsigned int skyboxVAO;
     unsigned int skyboxVBO;
+    //std::vector<std::string> faces{
+    //    "./resources/cubemap/bedu/p_R.jpg",
+    //    "./resources/cubemap/bedu/n_L.jpg",
+    //    "./resources/cubemap/bedu/p_U.jpg",
+    //    "./resources/cubemap/bedu/n_D.jpg",
+    //    "./resources/cubemap/bedu/p_F.jpg",
+    //    "./resources/cubemap/bedu/n_B.jpg"};
     std::vector<std::string> faces{
-        "./resources/cubemap/right.jpg",
-        "./resources/cubemap/left.jpg",
-        "./resources/cubemap/top.jpg",
-        "./resources/cubemap/bottom.jpg",
-        "./resources/cubemap/front.jpg",
-        "./resources/cubemap/back.jpg"};
+        "./resources/cubemap/blue_sky/right.jpg",
+        "./resources/cubemap/blue_sky/left.jpg",
+        "./resources/cubemap/blue_sky/top.jpg",
+        "./resources/cubemap/blue_sky/bottom.jpg",
+        "./resources/cubemap/blue_sky/front.jpg",
+        "./resources/cubemap/blue_sky/back.jpg"};
     Cubemap();
     ~Cubemap();
 

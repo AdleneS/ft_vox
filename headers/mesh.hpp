@@ -45,7 +45,6 @@ public:
     glm::mat4x4 mat;
     int maxHeight;
     int size;
-    bool rendered;
     Mesh(glm::vec3 position);
     ~Mesh();
     void translate(glm::vec3 v);

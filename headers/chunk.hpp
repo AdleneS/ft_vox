@@ -12,9 +12,9 @@ class Chunk
 public:
 	int Id;
 	bool rendered;
-	glm::vec3 Position;
 	int maxHeight;
 	Cube ***CubeData;
+	glm::vec3 Position;
 
 	Chunk(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), int id = -1);
 	~Chunk();

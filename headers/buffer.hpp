@@ -18,5 +18,6 @@ public:
     int maxHeight;
     Buffer();
     ~Buffer();
-    void loadVBO(Mesh mesh);
+    void loadVBO(Mesh *mesh);
+    void deleteVBO();
 };

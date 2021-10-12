@@ -5,7 +5,6 @@ Mesh::Mesh(glm::vec3 position)
     mat = glm::mat4(1.0f);
     Position = position;
     size = 0;
-    rendered = false;
     translate(Position);
 }
 Mesh::~Mesh()
