@@ -72,7 +72,7 @@ int main(void)
 
 	while (!glfwWindowShouldClose(window))
 	{
-		//fps(window);
+		// fps(window);
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -90,6 +90,7 @@ int main(void)
 		frustum.Transform(projection, view);
 		shader.setVec3("lightPos", glm::vec3(0.7, 0.2, 0.5));
 		shader.setVec3("viewPos", camera.Position);
+		shader.setBool("light", light);
 		mtxc.lock();
 		bufferGeneration(&buffer, &mesh, shader);
 		mtxc.unlock();
@@ -120,24 +121,24 @@ void skyboxDisplay(Shader skyboxShader, Cubemap skybox, glm::mat4 projection)
 	glDepthFunc(GL_LESS);
 }
 
-//bool comp(const std::pair<glm::vec3, Chunk *> &c1, const std::pair<glm::vec3, Chunk *> &c2)
+// bool comp(const std::pair<glm::vec3, Chunk *> &c1, const std::pair<glm::vec3, Chunk *> &c2)
 //{
 //	int distanceFromChunk1 = sqrt(pow((camera.Position.x - (c1.second->Position.x + 8)), 2) + pow((camera.Position.z - (c1.second->Position.z + 8)), 2));
 //	int distanceFromChunk2 = sqrt(pow((camera.Position.x - (c2.second->Position.x + 8)), 2) + pow((camera.Position.z - (c2.second->Position.z + 8)), 2));
 //	return distanceFromChunk1 < distanceFromChunk2;
-//}
+// }
 
 void displayVAO(BufferMap *buffer, Shader shader)
 {
 	std::vector<glm::vec3> vec;
-	//std::vector<std::pair<glm::vec3, Chunk *>> elems(chunks->begin(), chunks->end());
-	//std::sort(elems.begin(), elems.end(), comp);
-	//printf("%d\n", buffer->size());
+	// std::vector<std::pair<glm::vec3, Chunk *>> elems(chunks->begin(), chunks->end());
+	// std::sort(elems.begin(), elems.end(), comp);
+	// printf("%d\n", buffer->size());
 	for (auto it = buffer->begin(); it != buffer->end(); ++it)
 	{
 		int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + CHUNK_SIZE_X / 2)), 2) + pow((camera.Position.z - (it->second->Position.z + CHUNK_SIZE_Z / 2)), 2));
 
-		if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE * 1.4)
+		if (distanceFromChunk > VIEW_DISTANCE * VIEW_DISTANCE + (CHUNK_SIZE_X + CHUNK_SIZE_Y))
 		{
 			vec.emplace_back(it->first);
 			continue;
@@ -151,10 +152,10 @@ void displayVAO(BufferMap *buffer, Shader shader)
 			shader.setMat4("model", it->second->mat);
 			glBindVertexArray(it->second->VAO);
 			glDrawArrays(GL_TRIANGLES, 0, it->second->size / 3);
-			//triNb += it->second->size / 3 / 3;
+			// triNb += it->second->size / 3 / 3;
 		}
 	}
-	//printf("%d\n", triNb);
+	// printf("%d\n", triNb);
 	for (auto &&key : vec)
 	{
 		delete (buffer->find(key)->second);
@@ -189,6 +190,15 @@ void processInput(GLFWwindow *window)
 		camera.MovementSpeed = 50;
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
 		camera.MovementSpeed = 10;
+	// if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	//	light = light ? false : true;
+	static int oldState = GLFW_PRESS;
+	int newState = glfwGetKey(window, GLFW_KEY_E);
+	if (newState == GLFW_PRESS && oldState == GLFW_RELEASE)
+	{
+		light = light ? false : true;
+	}
+	oldState = newState;
 }
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos)

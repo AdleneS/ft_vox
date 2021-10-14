@@ -46,7 +46,7 @@ std::unordered_map<glm::vec3, int, MyHashFunction> renderedKeys;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-
+bool light = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
