@@ -13,63 +13,46 @@
 #include "../gl3w/src/gl3w.c"
 
 #include "const.hpp"
-
 #include "shader.hpp"
 #include "camera.hpp"
 #include "chunk.hpp"
 #include "mesh.hpp"
 #include "vector3.hpp"
 #include "frustum.hpp"
-#include "simplex.hpp"
 #include "cubemap.hpp"
 #include "buffer.hpp"
+#include "utils.hpp"
+#include "threadFunction.hpp"
 
 #include "../glfw/include/GLFW/glfw3.h"
 #include "../glm/glm.hpp"
 #include "../glm/ext/matrix_clip_space.hpp"
 #include "../glm/gtc/type_ptr.hpp"
-#include "../glm/gtc/noise.hpp"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.hpp"
 
 #define GLSL(src) #src
 
-typedef std::pair<glm::vec3, Chunk *> PosChunk;
-typedef std::pair<glm::vec3, Buffer *> PosBuffer;
-typedef std::pair<glm::vec3, Mesh *> PosMesh;
-typedef std::pair<glm::vec3, int> PosRendered;
-typedef std::unordered_map<glm::vec3, Chunk *, MyHashFunction> ChunkMap;
-typedef std::unordered_map<glm::vec3, Buffer *, MyHashFunction> BufferMap;
-typedef std::unordered_map<glm::vec3, Mesh *, MyHashFunction> MeshMap;
-typedef std::unordered_map<glm::vec3, int, MyHashFunction> KeyMap;
-typedef struct s_vox
-{
-    unsigned int chunkNbX;
-    unsigned int chunkNbZ;
-    unsigned int chunkCount;
-
-    float fps;
-
-    int seed;
-
-} t_vox;
+#include "struct.hpp"
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
-GLuint load_texture(const char *imagePath);
 
-Chunk createCube(t_vox *vox, int chunkId, glm::vec3 offsets, int seed);
-void createChunk(t_vox *vox, std::unordered_map<glm::vec3, Chunk *, MyHashFunction> *chunks, int start_x, int end_x, int start_z, int end_z);
-Mesh createMesh(Chunk chunk);
-void displayChunk(BufferMap *buffer, MeshMap *mesh, Shader shader);
 void displayVAO(BufferMap *buffer, Shader shader);
+void skyboxDisplay(Shader skyboxShader, Cubemap skybox, glm::mat4 projection);
 
-glm::vec2 selectTex(float n, float b);
+Camera camera(glm::vec3(0.0f, 128.0f, 0.0f));
+Frustum frustum;
+std::unordered_map<glm::vec3, int, MyHashFunction> renderedKeys;
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
 
-float Get2DPerlinNoiseValue(float x, float y, float res);
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
-t_vox *init();
+std::mutex mtx;
+std::mutex mtxb;
+std::mutex mtxc;
+std::mutex mtxd;
 
 #endif

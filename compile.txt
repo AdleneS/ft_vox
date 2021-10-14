@@ -1,1 +1,12 @@
-g++ ./srcs/main.cpp ./srcs/simplex.cpp ./srcs/frustum.cpp ./srcs/chunk.cpp ./srcs/cubemap.cpp  ./srcs/buffer.cpp ./srcs/mesh.cpp -o vox -pthread -lopengl32 -lglu32 -lgdi32 -luser32 -lkernel32 -lglfw3dll -O3
+g++ ./srcs/main.cpp \
+./srcs/simplex.cpp \
+./srcs/frustum.cpp \
+./srcs/chunk.cpp \
+./srcs/cubemap.cpp  \
+./srcs/buffer.cpp \
+./srcs/mesh.cpp \
+./srcs/chunkCreation.cpp \
+./srcs/meshCreation.cpp \
+./srcs/threadFunction.cpp \
+./srcs/utils.cpp \
+-o vox -pthread -lopengl32 -lglu32 -lgdi32 -luser32 -lkernel32 -lglfw3dll -O3

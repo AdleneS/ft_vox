@@ -36,11 +36,3 @@ public:
 
     unsigned int loadCubemap(std::vector<std::string> faces);
 };
-
-//inline Cubemap::Cubemap()
-//{
-//}
-//
-//inline Cubemap::~Cubemap()
-//{
-//}
