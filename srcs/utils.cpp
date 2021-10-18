@@ -38,6 +38,6 @@ void fps(GLFWwindow *window)
     last_time = current_time;
     current_time = glfwGetTime();
     double fps = 1.0 / (current_time - last_time);
-    snprintf(buffer, sizeof buffer, "%f", fps);
-    //glfwSetWindowTitle(window, std::strcat(title, buffer));
+    // snprintf(buffer, sizeof buffer, "%f", fps);
+    // glfwSetWindowTitle(window, std::strcat(title, buffer));
 }

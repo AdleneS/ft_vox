@@ -1,8 +1,8 @@
 #pragma once
 
+#include <mutex>
 #include "struct.hpp"
 #include "simplex.hpp"
-#include <mutex>
 #include "frustum.hpp"
 #include "camera.hpp"
 

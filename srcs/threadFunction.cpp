@@ -1,16 +1,16 @@
 #include "../headers/threadFunction.hpp"
 
-void chunkThread(ChunkMap *chunks, int start_x, int end_x, int start_z, int end_z)
+void chunkThread(ChunkMap *chunks, GLFWwindow *window, int start_x, int end_x, int start_z, int end_z)
 {
-    while (1)
+    while (window)
     {
         createChunk(chunks, start_x, end_x, start_z, end_z);
     }
 }
 
-void meshThread(ChunkMap *chunks, MeshMap *mesh)
+void meshThread(ChunkMap *chunks, GLFWwindow *window, MeshMap *mesh)
 {
-    while (1)
+    while (window)
     {
         mtx.lock();
         auto c = chunks->begin();

@@ -15,3 +15,11 @@ typedef std::unordered_map<glm::vec3, Chunk *, MyHashFunction> ChunkMap;
 typedef std::unordered_map<glm::vec3, Buffer *, MyHashFunction> BufferMap;
 typedef std::unordered_map<glm::vec3, Mesh *, MyHashFunction> MeshMap;
 typedef std::unordered_map<glm::vec3, int, MyHashFunction> KeyMap;
+
+struct Character
+{
+    unsigned int TextureID;
+    glm::ivec2 Size;
+    glm::ivec2 Bearing;
+    unsigned int Advance;
+};

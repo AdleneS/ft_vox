@@ -34,7 +34,7 @@ void Frustum::Transform(const glm::mat4 &proj, const glm::mat4 &view)
     m_data[Left][C] = clip[2][3] + clip[2][0];
     m_data[Left][D] = clip[3][3] + clip[3][0];
     Normalize(Left);
-    //printf("Left:%lfx + %lfy + %lfz + %lf = 0\n", m_data[Left][A], m_data[Left][B], m_data[Left][C], m_data[Left][D]);
+    // printf("Left:%lfx + %lfy + %lfz + %lf = 0\n", m_data[Left][A], m_data[Left][B], m_data[Left][C], m_data[Left][D]);
 
     m_data[Bottom][A] = clip[0][3] + clip[0][1];
     m_data[Bottom][B] = clip[1][3] + clip[1][1];
@@ -48,21 +48,21 @@ void Frustum::Transform(const glm::mat4 &proj, const glm::mat4 &view)
     m_data[Top][C] = clip[2][3] - clip[2][1];
     m_data[Top][D] = clip[3][3] - clip[3][1];
     Normalize(Top);
-    //printf("Top:%lfx + %lfy + %lfz + %lf = 0\n", m_data[Top][A], m_data[Top][B], m_data[Top][C], m_data[Top][D]);
+    // printf("Top:%lfx + %lfy + %lfz + %lf = 0\n", m_data[Top][A], m_data[Top][B], m_data[Top][C], m_data[Top][D]);
 
     m_data[Front][A] = clip[0][3] - clip[0][2];
     m_data[Front][B] = clip[1][3] - clip[1][2];
     m_data[Front][C] = clip[2][3] - clip[2][2];
     m_data[Front][D] = clip[3][3] - clip[3][2];
     Normalize(Front);
-    //printf("Front:%lfx + %lfy + %lfz + %lf = 0\n", m_data[Front][A], m_data[Front][B], m_data[Front][C], m_data[Front][D]);
+    // printf("Front:%lfx + %lfy + %lfz + %lf = 0\n", m_data[Front][A], m_data[Front][B], m_data[Front][C], m_data[Front][D]);
 
     m_data[Back][A] = clip[0][3] + clip[0][2];
     m_data[Back][B] = clip[1][3] + clip[1][2];
     m_data[Back][C] = clip[2][3] + clip[2][2];
     m_data[Back][D] = clip[3][3] + clip[3][2];
     Normalize(Back);
-    //printf("Back:%lfx + %lfy + %lfz + %lf = 0\n", m_data[Back][A], m_data[Back][B], m_data[Back][C], m_data[Back][D]);
+    // printf("Back:%lfx + %lfy + %lfz + %lf = 0\n", m_data[Back][A], m_data[Back][B], m_data[Back][C], m_data[Back][D]);
 }
 
 void Frustum::Normalize(Plane plane)

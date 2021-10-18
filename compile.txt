@@ -9,4 +9,5 @@ g++ ./srcs/main.cpp \
 ./srcs/meshCreation.cpp \
 ./srcs/threadFunction.cpp \
 ./srcs/utils.cpp \
--o vox -pthread -lopengl32 -lglu32 -lgdi32 -luser32 -lkernel32 -lglfw3dll -O3
+-o vox -I./freetype-windows/include -I./freetype/include/freetype-windows \
+-pthread -lopengl32 -lglu32 -lgdi32 -luser32 -lkernel32 -lglfw3dll -lfreetype -O3

@@ -1,7 +1,8 @@
 #pragma once
+#include <array>
 
-const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1080;
+#define SCR_WIDTH 2560
+#define SCR_HEIGHT 1440
 
 const float CHUNK_SIZE_X = 16;
 const float CHUNK_SIZE_Y = 256;
