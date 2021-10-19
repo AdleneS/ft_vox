@@ -42,40 +42,42 @@ Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
 {
     int id = 0;
     SimplexNoise noise;
+    t_biomes biomes;
     Chunk chunk(offsets, chunkId);
     for (size_t x = 0; x < CHUNK_SIZE_X; x++)
     {
         for (size_t z = 0; z < CHUNK_SIZE_Z; z++)
         {
-            float n = 0;
             int maxHeight = 0;
-            float b = desertSimplex(x, z, seed, offsets);
-            if (b > 1.2)
-                n = heightSimplex(0.5, 0.3, 0.0072, x, z, seed, offsets);
+            biomes.height = 0;
+            biomes.mountainType = mountainSimplex(x, z, seed, offsets);
+            biomes.biomeType = biomeSimplex(x, z, seed, offsets);
+            if (biomes.mountainType > 1.2)
+                biomes.height = heightSimplex(0.5, 1.3, 0.0072, x, z, seed, offsets);
             else
-                n = heightSimplex(0.5, 0.3, 0.0032, x, z, seed, offsets);
+                biomes.height = heightSimplex(0.5, 0.6, 0.0032, x, z, seed, offsets);
 
-            if (n <= CHUNK_SIZE_Y / 3)
-                n = CHUNK_SIZE_Y / 3;
+            if (biomes.height <= CHUNK_SIZE_Y / 7)
+                biomes.height = CHUNK_SIZE_Y / 7;
 
-            if (n > maxHeight)
-                maxHeight = n;
+            if (biomes.height > maxHeight)
+                maxHeight = biomes.height;
             float r = noise.noise(x + offsets.x, z + offsets.z);
             r = (r + 1) / 2;
             // printf("%f\n", r);
-            populateChunk(&chunk, x, n, z, id, b, maxHeight);
+            populateChunk(&chunk, biomes, x, z, id, maxHeight);
 
-            if (n > CHUNK_SIZE_Y / 3 + 4 && b < 0.9)
+            if (biomes.height > CHUNK_SIZE_Y / 7 + 4 && biomes.biomeType > 0 && biomes.biomeType < 0.2)
             {
                 if (r > 0.9835)
                 {
-                    createTree(&chunk, x, n, z, id);
+                    createTree(&chunk, biomes, x, z, id);
                 }
             }
 
             id = id + 1 + chunkId;
 
-            for (int y = 50; y < (int)n; y++)
+            for (int y = 0; y < (int)biomes.height; y++)
             {
                 float nn = caveSimplex(x, y, z, seed, offsets);
 
@@ -84,15 +86,15 @@ Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
                 {
                     chunk.CubeData[x][(y)][z].Position = glm::vec3((x), (y), (z));
                     chunk.CubeData[x][(y)][z].Id = id;
-                    chunk.CubeData[x][(y)][z].texCoord = glm::vec2(0, 2);
+                    chunk.CubeData[x][(y)][z].texCoord = glm::vec2(1, 0);
                     chunk.CubeData[x][(y)][z].isEmpty = false;
                     chunk.CubeData[x][(y)][z].value = y;
                 }
-                if (y == 50)
+                if (y == 0)
                 {
                     chunk.CubeData[x][(y)][z].Position = glm::vec3((x), (y), (z));
                     chunk.CubeData[x][(y)][z].Id = id;
-                    chunk.CubeData[x][(y)][z].texCoord = glm::vec2(0, 2);
+                    chunk.CubeData[x][(y)][z].texCoord = glm::vec2(1, 0);
                     chunk.CubeData[x][(y)][z].isEmpty = false;
                     chunk.CubeData[x][(y)][z].value = y;
                 }
@@ -117,19 +119,38 @@ float heightSimplex(float n, float a, float freq, int x, int z, float seed, glm:
         freq *= 2.0;
     }
     n = (n + 1) / 2;
-    n *= CHUNK_SIZE_Y / 2;
+    n *= CHUNK_SIZE_Y / 4.5;
 
     return n;
 }
 
-float desertSimplex(int x, int z, float seed, glm::vec3 offsets)
+float mountainSimplex(int x, int z, float seed, glm::vec3 offsets)
 {
     SimplexNoise noise;
     float n = 0.3;
     float a = 2.2;
-    float freq = 0.0008;
-    float value = 3;
+    float freq = 0.00016;
+    float value = 0;
     for (int octave = 0; octave < 8; octave++)
+    {
+        value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
+        n += value;
+        a *= 0.5;
+        freq *= 2.0;
+    }
+    n = (n + 1) / 2;
+
+    return n;
+}
+
+float biomeSimplex(int x, int z, float seed, glm::vec3 offsets)
+{
+    SimplexNoise noise;
+    float n = 0;
+    float a = 1.0;
+    float freq = 0.00016;
+    float value = 0;
+    for (int octave = 0; octave < 12; octave++)
     {
         value = a * noise.noise((x + offsets.x + (float)seed) * freq, (z + offsets.z + (float)seed) * freq, 1);
         n += value;
@@ -158,23 +179,23 @@ float caveSimplex(int x, int y, int z, float seed, glm::vec3 offsets)
     return n;
 }
 
-void populateChunk(Chunk *chunk, int x, int n, int z, int id, float b, int maxHeight)
+void populateChunk(Chunk *chunk, t_biomes biomes, int x, int z, int id, int maxHeight)
 {
-    chunk->CubeData[x][(int)n][z].Position = glm::vec3((x), (int)(n), (z));
-    chunk->CubeData[x][(int)n][z].Id = id;
-    chunk->CubeData[x][(int)n][z].texCoord = selectTex(n, b);
-    chunk->CubeData[x][(int)n][z].isEmpty = false;
-    chunk->CubeData[x][(int)n][z].value = n;
+    chunk->CubeData[x][(int)biomes.height][z].Position = glm::vec3((x), (int)(biomes.height), (z));
+    chunk->CubeData[x][(int)biomes.height][z].Id = id;
+    chunk->CubeData[x][(int)biomes.height][z].texCoord = selectTex(biomes);
+    chunk->CubeData[x][(int)biomes.height][z].isEmpty = false;
+    chunk->CubeData[x][(int)biomes.height][z].value = biomes.height;
     chunk->maxHeight = maxHeight;
 }
 
-void createTree(Chunk *chunk, int x, int n, int z, int id)
+void createTree(Chunk *chunk, t_biomes biomes, int x, int z, int id)
 {
     for (size_t i = 0; i < 5; i++)
     {
-        chunk->CubeData[x][(int)n + i][z].Position = glm::vec3((x), (int)(n + i), (z));
-        chunk->CubeData[x][(int)n + i][z].texCoord = glm::vec2(0, 3);
-        chunk->CubeData[x][(int)n + i][z].isEmpty = false;
+        chunk->CubeData[x][(int)biomes.height + i][z].Position = glm::vec3((x), (int)(biomes.height + i), (z));
+        chunk->CubeData[x][(int)biomes.height + i][z].texCoord = glm::vec2(4, 1);
+        chunk->CubeData[x][(int)biomes.height + i][z].isEmpty = false;
     }
     for (size_t j = 0; j < 3; j++)
     {
@@ -182,27 +203,51 @@ void createTree(Chunk *chunk, int x, int n, int z, int id)
         {
             for (size_t l = 0; l < 3; l++)
             {
-                if (x - 1 + k > 0 && x - 1 + k < 16 && n + 3 + l > 0 && n + 3 + l < 256 && z - 1 + j > 0 && z - 1 + j < 16)
+                if (x - 1 + k > 0 && x - 1 + k < 16 && biomes.height + 3 + l > 0 && biomes.height + 3 + l < 256 && z - 1 + j > 0 && z - 1 + j < 16)
                 {
-                    chunk->CubeData[x - 1 + k][(int)n + 3 + l][z - 1 + j].Position = glm::vec3((x - 1 + k), (int)(n + 3 + l), (z - 1 + j));
-                    chunk->CubeData[x - 1 + k][(int)n + 3 + l][z - 1 + j].texCoord = glm::vec2(2, 3);
-                    chunk->CubeData[x - 1 + k][(int)n + 3 + l][z - 1 + j].isEmpty = false;
-                    chunk->maxHeight = (int)n + 3 + l;
+                    chunk->CubeData[x - 1 + k][(int)biomes.height + 3 + l][z - 1 + j].Position = glm::vec3((x - 1 + k), (int)(biomes.height + 3 + l), (z - 1 + j));
+                    chunk->CubeData[x - 1 + k][(int)biomes.height + 3 + l][z - 1 + j].texCoord = glm::vec2(4, 8);
+                    chunk->CubeData[x - 1 + k][(int)biomes.height + 3 + l][z - 1 + j].isEmpty = false;
+                    chunk->maxHeight = (int)biomes.height + 3 + l;
                 }
             }
         }
     }
 }
 
-glm::vec2 selectTex(float n, float b)
+glm::vec2 selectTex(t_biomes biomes)
 {
-    if (n < CHUNK_SIZE_Y / 3)
-        return glm::vec2(0, 1);
-    if (n < CHUNK_SIZE_Y / 3 + 3)
-        return glm::vec2(1, 1);
-    if (b > 0.9 && b < 1.2)
-        return glm::vec2(1, 1);
-    if (b > 1.2)
-        return glm::vec2(0, 2);
-    return glm::vec2(0, 0);
+    if (biomes.biomeType > 0 && biomes.biomeType < 0.2)
+    {
+        if ((int)biomes.height < CHUNK_SIZE_Y / 7)
+            return glm::vec2(13, 12);
+        if (biomes.height < CHUNK_SIZE_Y / 7 + 3)
+            return glm::vec2(2, 1);
+        return glm::vec2(3, 0);
+    }
+    if (biomes.biomeType > 0.2 && biomes.biomeType < 0.4)
+    {
+        if ((int)biomes.height < CHUNK_SIZE_Y / 7)
+            return glm::vec2(13, 12);
+        if (biomes.height < CHUNK_SIZE_Y / 7 + 3)
+            return glm::vec2(2, 1);
+        return glm::vec2(2, 1);
+    }
+    if (biomes.biomeType > 0.4 && biomes.biomeType < 0.6)
+    {
+        if ((int)biomes.height < CHUNK_SIZE_Y / 7)
+            return glm::vec2(13, 14);
+        return glm::vec2(1, 0);
+    }
+    if (biomes.biomeType > 0.6 && biomes.biomeType < 0.8)
+    {
+        if ((int)biomes.height < CHUNK_SIZE_Y / 7)
+            return glm::vec2(13, 14);
+        return glm::vec2(13, 4);
+    }
+    if ((int)biomes.height < CHUNK_SIZE_Y / 7)
+        return glm::vec2(13, 12);
+    if (biomes.height < CHUNK_SIZE_Y / 7 + 3)
+        return glm::vec2(2, 1);
+    return glm::vec2(3, 0);
 }

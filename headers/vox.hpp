@@ -12,6 +12,7 @@
 #include <map>
 #include <random>
 #include <sstream>
+#include <unistd.h>
 
 #include "../gl3w/include/GL/gl3w.h"
 #include "../gl3w/src/gl3w.c"

@@ -63,7 +63,7 @@ int main(void)
 	glfwSetKeyCallback(window, key_callback);
 
 	shader.use();
-	texture1 = load_texture("./resources/textures/textures.png");
+	texture1 = load_texture("./resources/textures/textures2.png");
 	shader.setInt("texture1", 0);
 	skyboxShader.use();
 	skyboxShader.setInt("skybox", 0);
@@ -114,6 +114,7 @@ int main(void)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+	// sleep(5);
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);

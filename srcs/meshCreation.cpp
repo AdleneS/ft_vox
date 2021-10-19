@@ -15,11 +15,13 @@ Mesh createMesh(Chunk chunk)
                 for (int i = 0; i < 6; i++)
                 {
                     tex = chunk.CubeData[x][y][z].texCoord;
-                    if (tex.x == 0 && tex.y == 0 && i == 4)
-                        tex = glm::vec2(1, 0);
-                    if (tex.x == 0 && tex.y == 0 && i == 5)
+                    if (glm::vec2(3, 0) == tex && i == 4)
+                        tex = glm::vec2(8, 2);
+                    if ((glm::vec2(3, 0) == tex || glm::vec2(13, 4) == tex) && i == 5)
                         tex = glm::vec2(2, 0);
-                    if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk.CubeData) || chunk.CubeData[x][y][z].texCoord == glm::vec2(2, 3))
+                    if (glm::vec2(13, 4) == tex && i == 4)
+                        tex = glm::vec2(14, 4);
+                    if (!mesh.getNeighbor(x, y, z, (Direction)i, chunk.CubeData) || chunk.CubeData[x][y][z].texCoord == glm::vec2(4, 8))
                     {
                         for (size_t j = 0; j < 18; j += 3)
                         {
