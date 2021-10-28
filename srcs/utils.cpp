@@ -28,16 +28,3 @@ GLuint load_texture(const char *imagePath)
     stbi_image_free(data);
     return texture1;
 }
-
-void fps(GLFWwindow *window)
-{
-    static double current_time = 0;
-    static double last_time = 0;
-    char buffer[5];
-    char title[] = "VOX | ";
-    last_time = current_time;
-    current_time = glfwGetTime();
-    double fps = 1.0 / (current_time - last_time);
-    // snprintf(buffer, sizeof buffer, "%f", fps);
-    // glfwSetWindowTitle(window, std::strcat(title, buffer));
-}

@@ -36,9 +36,9 @@ void Chunk::memCubeData()
 }
 void Chunk::freeCubeData()
 {
-    for (int i = 0; i < CHUNK_SIZE_X; i++)
+    for (int i = 0; i < (int)CHUNK_SIZE_X; i++)
     {
-        for (int j = 0; j < CHUNK_SIZE_Y; j++)
+        for (int j = 0; j < (int)CHUNK_SIZE_Y; j++)
         {
             free(CubeData[i][j]);
         }
@@ -49,5 +49,6 @@ void Chunk::freeCubeData()
 
 Chunk::~Chunk()
 {
-    freeCubeData();
+    //printf("ERASE\n");
+    //freeCubeData();
 }

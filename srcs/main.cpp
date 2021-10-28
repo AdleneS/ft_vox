@@ -23,8 +23,9 @@ int main(void)
 	BufferMap buffer;
 	MeshMap mesh;
 	FT_Library ft;
-	GLuint fontVAO;
-	GLuint fontVBO;
+	GLuint fontVAO = 0;
+	GLuint fontVBO = 0;
+
 	GLuint texture1;
 	GLFWmonitor *primary;
 	srand((unsigned int)time(NULL));
@@ -55,15 +56,15 @@ int main(void)
 
 	Cubemap skybox;
 
-	Shader shader("./shaders/vertex.glsl", "./shaders/fragment.glsl");
-	Shader skyboxShader("./shaders/skyboxVs.glsl", "./shaders/skyboxFs.glsl");
-	Shader textShader("./shaders/textVs.glsl", "./shaders/textFs.glsl");
+	Shader shader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
+	Shader skyboxShader("../shaders/skyboxVs.glsl", "../shaders/skyboxFs.glsl");
+	Shader textShader("../shaders/textVs.glsl", "../shaders/textFs.glsl");
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetKeyCallback(window, key_callback);
 
 	shader.use();
-	texture1 = load_texture("./resources/textures/textures2.png");
+	texture1 = load_texture("../resources/textures/textures2.png");
 	shader.setInt("texture1", 0);
 	skyboxShader.use();
 	skyboxShader.setInt("skybox", 0);
@@ -105,7 +106,7 @@ int main(void)
 		shader.setVec3("viewPos", camera.Position);
 		shader.setBool("light", light);
 		mtxc.lock();
-		bufferGeneration(&buffer, &mesh, shader);
+		bufferGeneration(&buffer, &mesh);
 		mtxc.unlock();
 		displayVAO(&buffer, shader);
 		skyboxDisplay(skyboxShader, skybox, projection);
@@ -114,7 +115,15 @@ int main(void)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	// sleep(5);
+	stop = true;
+	for (auto &&i : chunks)
+	{
+		i.second->freeCubeData();
+		delete i.second;
+	}
+	chunks.clear();
+	buffer.clear();
+	mesh.clear();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
@@ -135,20 +144,20 @@ void skyboxDisplay(Shader skyboxShader, Cubemap skybox, glm::mat4 projection)
 	glDepthFunc(GL_LESS);
 }
 
-// bool comp(const std::pair<glm::vec3, Chunk *> &c1, const std::pair<glm::vec3, Chunk *> &c2)
-//{
-//	int distanceFromChunk1 = sqrt(pow((camera.Position.x - (c1.second->Position.x + 8)), 2) + pow((camera.Position.z - (c1.second->Position.z + 8)), 2));
-//	int distanceFromChunk2 = sqrt(pow((camera.Position.x - (c2.second->Position.x + 8)), 2) + pow((camera.Position.z - (c2.second->Position.z + 8)), 2));
-//	return distanceFromChunk1 < distanceFromChunk2;
-// }
+bool comp(const std::pair<glm::vec3, Buffer *> &c1, const std::pair<glm::vec3, Buffer *> &c2)
+{
+	int distanceFromChunk1 = sqrt(pow((camera.Position.x - (c1.second->Position.x + 8)), 2) + pow((camera.Position.z - (c1.second->Position.z + 8)), 2));
+	int distanceFromChunk2 = sqrt(pow((camera.Position.x - (c2.second->Position.x + 8)), 2) + pow((camera.Position.z - (c2.second->Position.z + 8)), 2));
+	return distanceFromChunk1 < distanceFromChunk2;
+}
 
 void displayVAO(BufferMap *buffer, Shader shader)
 {
 	std::vector<glm::vec3> vec;
-	// std::vector<std::pair<glm::vec3, Chunk *>> elems(chunks->begin(), chunks->end());
-	// std::sort(elems.begin(), elems.end(), comp);
+	std::vector<std::pair<glm::vec3, Buffer *>> elems(buffer->begin(), buffer->end());
+	std::sort(elems.begin(), elems.end(), comp);
 	// printf("%d\n", buffer->size());
-	for (auto it = buffer->begin(); it != buffer->end(); ++it)
+	for (auto it = elems.begin(); it != elems.end(); ++it)
 	{
 		int distanceFromChunk = sqrt(pow((camera.Position.x - (it->second->Position.x + CHUNK_SIZE_X / 2)), 2) + pow((camera.Position.z - (it->second->Position.z + CHUNK_SIZE_Z / 2)), 2));
 
@@ -250,7 +259,7 @@ int initFreeType(FT_Library *ft, GLuint *VAO, GLuint *VBO)
 	}
 
 	// find path to font
-	std::string font_name = "./resources/font/arial.ttf";
+	std::string font_name = "../resources/font/arial.ttf";
 	if (font_name.empty())
 	{
 		std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;

@@ -1,16 +1,16 @@
 NAME	= ft_vox
 
-SRCS 	= ./srcs/main.cpp ./srcs/chunk.cpp ./srcs/frustum.cpp ./srcs/simplex.cpp ./srcs/cubemap.cpp ./srcs/buffer.cpp 
+SRCS 	= ./srcs/main.cpp ./srcs/chunk.cpp ./srcs/frustum.cpp ./srcs/simplex.cpp ./srcs/cubemap.cpp ./srcs/buffer.cpp ./srcs/chunkCreation.cpp ./srcs/meshCreation.cpp ./srcs/threadFunction.cpp ./srcs/utils.cpp ./srcs/mesh.cpp 
 
 OBJ_DIR = ./.objs
 SRC_DIR = ./srcs
 INC_DIR = ./include
-INC_HDR =	-I./ -I./glfw/include -I./gl3w/include/GL
-INC_LIB =	-L./glfw/src -lglfw3 -lpthread -pthread\
+INC_HDR =	-I./ -I./glfw/include -I./gl3w/include/GL -I./freetype/include/freetype2 -I./freetype/include/freetype2/freetype -I./freetype/include/freetype2/freetype/config
+INC_LIB =	-L./glfw/src -lglfw3 -lpthread -pthread -L./freetype/lib -lfreetype -lfreetype.6\
 			-framework OpenGL -framework AppKit -framework Cocoa -framework IOKit -framework CoreVideo
-INC_H	= ./headers/vox.hpp ./headers/chunk.hpp ./headers/const.hpp ./headers/cube.hpp ./headers/frustum.hpp ./headers/mesh.hpp ./headers/shader.hpp ./headers/simplex.hpp ./headers/stb_image.hpp ./headers/vector3.hpp ./headers/buffer.hpp
+INC_H	= ./headers/vox.hpp ./headers/chunk.hpp ./headers/const.hpp ./headers/cube.hpp ./headers/frustum.hpp ./headers/mesh.hpp ./headers/shader.hpp ./headers/simplex.hpp ./headers/stb_image.hpp ./headers/vector3.hpp ./headers/buffer.hpp ./headers/camera.hpp
 
-CFLAGS	:= -std=c++11 -stdlib=libc++ -Wall -Wextra -O3 -I$(INC_DIR)
+CFLAGS	:= -std=c++11 -stdlib=libc++ -Wall -Wextra -O3 -I$(INC_DIR) $(INC_HDR)
 OBJS	:= $(patsubst .$(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,  $(SRCS))
 
 all: CREATE_OBJDIR $(NAME)

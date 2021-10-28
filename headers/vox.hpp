@@ -33,8 +33,10 @@
 #include "../glm/glm.hpp"
 #include "../glm/ext/matrix_clip_space.hpp"
 #include "../glm/gtc/type_ptr.hpp"
-#include "../freetype-windows/include/ft2build.h"
-#include FT_FREETYPE_H
+//#include "../freetype-windows/include/ft2build.h"
+#include "../freetype/include/freetype2/ft2build.h"
+#include "../freetype/include/freetype2/freetype/freetype.h"
+//#include FT_FREETYPE_H
 #define GLSL(src) #src
 
 #include "struct.hpp"
@@ -63,6 +65,8 @@ std::mutex mtx;
 std::mutex mtxb;
 std::mutex mtxc;
 std::mutex mtxd;
+
+bool stop = false;
 
 std::array<uint8_t, 256> perm{
     151, 160, 137, 91, 90, 15,

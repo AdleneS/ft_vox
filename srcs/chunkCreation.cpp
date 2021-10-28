@@ -71,7 +71,7 @@ Chunk createCube(int chunkId, glm::vec3 offsets, int seed)
             {
                 if (r > 0.9835)
                 {
-                    createTree(&chunk, biomes, x, z, id);
+                    createTree(&chunk, biomes, x, z);
                 }
             }
 
@@ -189,7 +189,7 @@ void populateChunk(Chunk *chunk, t_biomes biomes, int x, int z, int id, int maxH
     chunk->maxHeight = maxHeight;
 }
 
-void createTree(Chunk *chunk, t_biomes biomes, int x, int z, int id)
+void createTree(Chunk *chunk, t_biomes biomes, int x, int z)
 {
     for (size_t i = 0; i < 5; i++)
     {

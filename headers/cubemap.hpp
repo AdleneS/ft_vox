@@ -15,8 +15,8 @@ public:
     int nrChannels;
     unsigned char *data;
     unsigned int cubemapTexture;
-    unsigned int skyboxVAO;
-    unsigned int skyboxVBO;
+    unsigned int skyboxVAO = 0;
+    unsigned int skyboxVBO = 0;
     //std::vector<std::string> faces{
     //    "./resources/cubemap/bedu/p_R.jpg",
     //    "./resources/cubemap/bedu/n_L.jpg",
@@ -25,12 +25,12 @@ public:
     //    "./resources/cubemap/bedu/p_F.jpg",
     //    "./resources/cubemap/bedu/n_B.jpg"};
     std::vector<std::string> faces{
-        "./resources/cubemap/blue_sky/right.jpg",
-        "./resources/cubemap/blue_sky/left.jpg",
-        "./resources/cubemap/blue_sky/top.jpg",
-        "./resources/cubemap/blue_sky/bottom.jpg",
-        "./resources/cubemap/blue_sky/front.jpg",
-        "./resources/cubemap/blue_sky/back.jpg"};
+        "../resources/cubemap/blue_sky/right.jpg",
+        "../resources/cubemap/blue_sky/left.jpg",
+        "../resources/cubemap/blue_sky/top.jpg",
+        "../resources/cubemap/blue_sky/bottom.jpg",
+        "../resources/cubemap/blue_sky/front.jpg",
+        "../resources/cubemap/blue_sky/back.jpg"};
     Cubemap();
     ~Cubemap();
 

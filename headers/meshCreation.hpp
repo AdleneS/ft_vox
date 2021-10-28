@@ -4,4 +4,4 @@
 #include "shader.hpp"
 
 Mesh createMesh(Chunk chunk);
-void bufferGeneration(BufferMap *buffer, MeshMap *mesh, Shader shader);
+void bufferGeneration(BufferMap *buffer, MeshMap *mesh);

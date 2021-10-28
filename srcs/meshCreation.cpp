@@ -49,11 +49,10 @@ Mesh createMesh(Chunk chunk)
     return mesh;
 }
 
-void bufferGeneration(BufferMap *buffer, MeshMap *mesh, Shader shader)
+void bufferGeneration(BufferMap *buffer, MeshMap *mesh)
 {
     auto begin = mesh->begin();
     auto end = mesh->end();
-    // printf("%d\n", mesh->size());
     if (mesh->size() > 0)
     {
         if (begin != end)
@@ -72,6 +71,7 @@ void bufferGeneration(BufferMap *buffer, MeshMap *mesh, Shader shader)
             mesh->at(begin->first)->texCoord.shrink_to_fit();
             mesh->at(begin->first)->Normal.clear();
             mesh->at(begin->first)->Normal.shrink_to_fit();
+            delete mesh->at(begin->first);
             mesh->erase(begin);
             return;
         }

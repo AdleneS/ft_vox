@@ -29,7 +29,7 @@ float caveSimplex(int x, int y, int z, float seed, glm::vec3 offsets);
 float mountainSimplex(int x, int z, float seed, glm::vec3 offsets);
 float heightSimplex(float n, float a, float freq, int x, int z, float seed, glm::vec3 offsets);
 float biomeSimplex(int x, int z, float seed, glm::vec3 offsets);
-void createTree(Chunk *chunk, t_biomes biomes, int x, int z, int id);
+void createTree(Chunk *chunk, t_biomes biomes, int x, int z);
 void populateChunk(Chunk *chunk, t_biomes biomes, int x, int z, int id, int maxHeight);
 void createChunk(ChunkMap *chunks, int start_x, int end_x, int start_z, int end_z);
 int createExpendedChunkX(ChunkMap *chunks, int x, int z, int o);

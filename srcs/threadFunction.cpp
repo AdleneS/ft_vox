@@ -2,7 +2,7 @@
 
 void chunkThread(ChunkMap *chunks, GLFWwindow *window, int start_x, int end_x, int start_z, int end_z)
 {
-    while (window)
+    while (!stop)
     {
         createChunk(chunks, start_x, end_x, start_z, end_z);
     }
@@ -10,7 +10,7 @@ void chunkThread(ChunkMap *chunks, GLFWwindow *window, int start_x, int end_x, i
 
 void meshThread(ChunkMap *chunks, GLFWwindow *window, MeshMap *mesh)
 {
-    while (window)
+    while (!stop)
     {
         mtx.lock();
         auto c = chunks->begin();
@@ -25,11 +25,13 @@ void meshThread(ChunkMap *chunks, GLFWwindow *window, MeshMap *mesh)
             {
                 mesh->emplace(PosMesh((c->first), new Mesh(createMesh(*c->second))));
                 mtx.lock();
+                chunks->find(c->first)->second->freeCubeData();
+                delete chunks->find(c->first)->second;
                 chunks->erase(c->first);
                 mtx.unlock();
             }
         }
         mtxc.unlock();
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
